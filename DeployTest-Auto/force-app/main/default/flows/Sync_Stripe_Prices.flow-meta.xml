@@ -41,13 +41,7 @@
                 <elementReference>Cast_to_Stripe_Price.nickname</elementReference>
             </value>
         </assignmentItems>
-        <assignmentItems>
-            <assignToReference>Get_Stripe_Price.recurring_aggregate_usage__c</assignToReference>
-            <operator>Assign</operator>
-            <value>
-                <elementReference>Cast_to_Stripe_Price.recurring.aggregateUsage</elementReference>
-            </value>
-        </assignmentItems>
+       
         <assignmentItems>
             <assignToReference>Get_Stripe_Price.recurring_interval__c</assignToReference>
             <operator>Assign</operator>
@@ -127,13 +121,7 @@
                 <elementReference>Cast_to_Stripe_Price.nickname</elementReference>
             </value>
         </assignmentItems>
-        <assignmentItems>
-            <assignToReference>Get_Stripe_Price.recurring_aggregate_usage__c</assignToReference>
-            <operator>Assign</operator>
-            <value>
-                <elementReference>Cast_to_Stripe_Price.recurring.aggregateUsage</elementReference>
-            </value>
-        </assignmentItems>
+         
         <assignmentItems>
             <assignToReference>Get_Stripe_Price.recurring_interval__c</assignToReference>
             <operator>Assign</operator>

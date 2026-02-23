@@ -5,7 +5,7 @@
         <label>Cast to Stripe Price</label>
         <locationX>314</locationX>
         <locationY>323</locationY>
-        <actionName>stripeGC__v01_CastPrice</actionName>
+        <actionName>stripeGC__v02_CastPrice</actionName>
         <actionType>apex</actionType>
         <connector>
             <targetReference>Get_Stripe_Price</targetReference>
@@ -17,7 +17,7 @@
                 <elementReference>$Record.stripeGC__Request_Body__c</elementReference>
             </value>
         </inputParameters>
-        <nameSegment>stripeGC__v01_CastPrice</nameSegment>
+        <nameSegment>stripeGC__v02_CastPrice</nameSegment>
         <storeOutputAutomatically>true</storeOutputAutomatically>
         <versionSegment>1</versionSegment>
     </actionCalls>
@@ -41,13 +41,7 @@
                 <elementReference>Cast_to_Stripe_Price.nickname</elementReference>
             </value>
         </assignmentItems>
-        <assignmentItems>
-            <assignToReference>Get_Stripe_Price.recurring_aggregate_usage__c</assignToReference>
-            <operator>Assign</operator>
-            <value>
-                <elementReference>Cast_to_Stripe_Price.recurring.aggregateUsage</elementReference>
-            </value>
-        </assignmentItems>
+      
         <assignmentItems>
             <assignToReference>Get_Stripe_Price.recurring_interval__c</assignToReference>
             <operator>Assign</operator>
@@ -127,13 +121,7 @@
                 <elementReference>Cast_to_Stripe_Price.nickname</elementReference>
             </value>
         </assignmentItems>
-        <assignmentItems>
-            <assignToReference>Get_Stripe_Price.recurring_aggregate_usage__c</assignToReference>
-            <operator>Assign</operator>
-            <value>
-                <elementReference>Cast_to_Stripe_Price.recurring.aggregateUsage</elementReference>
-            </value>
-        </assignmentItems>
+      
         <assignmentItems>
             <assignToReference>Get_Stripe_Price.recurring_interval__c</assignToReference>
             <operator>Assign</operator>

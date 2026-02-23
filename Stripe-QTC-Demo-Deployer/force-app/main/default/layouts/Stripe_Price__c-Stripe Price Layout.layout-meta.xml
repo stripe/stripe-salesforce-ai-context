@@ -26,10 +26,7 @@
                 <behavior>Edit</behavior>
                 <field>Stripe_Product__c</field>
             </layoutItems>
-            <layoutItems>
-                <behavior>Edit</behavior>
-                <field>recurring_aggregate_usage__c</field>
-            </layoutItems>
+            
             <layoutItems>
                 <behavior>Edit</behavior>
                 <field>recurring_interval__c</field>
