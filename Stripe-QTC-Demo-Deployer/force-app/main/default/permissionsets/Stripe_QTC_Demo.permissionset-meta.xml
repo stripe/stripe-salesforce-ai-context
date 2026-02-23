@@ -1,91 +1,163 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
-    <label>Stripe QTC Demo</label>
+    <label>Stripe QTC </label>
     <hasActivationRequired>false</hasActivationRequired>
 
-    <!-- to run Flows -->
-    <userPermissions>
-        <name>RunFlows</name>
-        <enabled>true</enabled>
-    </userPermissions>
+    <!-- classAccesses -->
+    <classAccesses><apexClass>StripeEmbeddedCheckoutController</apexClass><enabled>true</enabled></classAccesses>
+    <classAccesses><apexClass>StripeIntegrationController</apexClass><enabled>true</enabled></classAccesses>
+    <classAccesses><apexClass>StripeSubscriptionScheduleDiscount</apexClass><enabled>true</enabled></classAccesses>
+    <classAccesses><apexClass>StripeSubscriptionScheduleItem</apexClass><enabled>true</enabled></classAccesses>
+    <classAccesses><apexClass>StripeSubscriptionScheduleMetadata</apexClass><enabled>true</enabled></classAccesses>
+    <classAccesses><apexClass>StripeSubscriptionSchedulePhase</apexClass><enabled>true</enabled></classAccesses>
+    <classAccesses><apexClass>StripeSubscriptionScheduleUpdate</apexClass><enabled>true</enabled></classAccesses>
+    <classAccesses><apexClass>StripeSubscriptionSchedules</apexClass><enabled>true</enabled></classAccesses>
+    <classAccesses><apexClass>StripeSubsriptionSchedulePhase</apexClass><enabled>true</enabled></classAccesses>
+    <classAccesses><apexClass>StripeTaxCalculation</apexClass><enabled>true</enabled></classAccesses>
+    <classAccesses><apexClass>StripeTaxLineItems</apexClass><enabled>true</enabled></classAccesses>
+    <classAccesses><apexClass>UnrelatedStripeCustomers</apexClass><enabled>true</enabled></classAccesses>
 
-    <userPermissions>
-        <name>ApiEnabled</name>
-        <enabled>true</enabled>
-    </userPermissions>
+    <!-- pageAccesses -->
+    <pageAccesses><apexPage>StripeCheckoutExample</apexPage><enabled>true</enabled></pageAccesses>
+    <pageAccesses><apexPage>StripeIntegrationPage</apexPage><enabled>true</enabled></pageAccesses>
+    <pageAccesses><apexPage>StripePaymentVFP</apexPage><enabled>true</enabled></pageAccesses>
 
-    <userPermissions>
-        <name>LightningExperienceUser</name>
-        <enabled>true</enabled>
-    </userPermissions>
+    <!-- fieldPermissions -->
+    <fieldPermissions><editable>true</editable><field>Account.Email_Domain__c</field><readable>true</readable></fieldPermissions>
 
-    <!-- Apex Class Access     -->
-    <classAccesses>
-        <apexClass>StripeIntegrationController</apexClass>
-        <enabled>true</enabled>
-    </classAccesses>
-    <classAccesses>
-        <apexClass>StripeSubscriptionScheduleDiscount</apexClass>
-        <enabled>true</enabled>
-    </classAccesses>
-    <classAccesses>
-        <apexClass>StripeSubscriptionScheduleItem</apexClass>
-        <enabled>true</enabled>
-    </classAccesses>
-    <classAccesses>
-        <apexClass>StripeSubscriptionScheduleMetadata</apexClass>
-        <enabled>true</enabled>
-    </classAccesses>
-    <classAccesses>
-        <apexClass>StripeSubscriptionSchedulePhase</apexClass>
-        <enabled>true</enabled>
-    </classAccesses>
-    <classAccesses>
-        <apexClass>StripeSubscriptionSchedules</apexClass>
-        <enabled>true</enabled>
-    </classAccesses>
-    <classAccesses>
-        <apexClass>StripeSubscriptionScheduleUpdate</apexClass>
-        <enabled>true</enabled>
-    </classAccesses>
-    <classAccesses>
-        <apexClass>StripeSubsriptionSchedulePhase</apexClass>
-        <enabled>true</enabled>
-    </classAccesses>
-    <classAccesses>
-        <apexClass>StripeTaxCalculation</apexClass>
-        <enabled>true</enabled>
-    </classAccesses>
-    <classAccesses>
-        <apexClass>StripeTaxLineItems</apexClass>
-        <enabled>true</enabled>
-    </classAccesses>
-    <classAccesses>
-        <apexClass>UnrelatedStripeCustomers</apexClass>
-        <enabled>true</enabled>
-    </classAccesses>
+    <fieldPermissions><editable>true</editable><field>Individual.Identity_Status__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Individual.Identity_Verified__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Individual.email__c</field><readable>true</readable></fieldPermissions>
 
-    <!-- Object Permissions    -->
+    <fieldPermissions><editable>true</editable><field>LegalEntity.Stripe_Account_ID__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>LegalEntity.Stripe_Account_Status__c</field><readable>true</readable></fieldPermissions>
 
-    <!-- Standard objects -->
+    <fieldPermissions><editable>true</editable><field>Opportunity.AccountId</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Opportunity.Amendment_Start_Time__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Opportunity.Amount</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Opportunity.CampaignId</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>false</editable><field>Opportunity.ContractId</field><readable>false</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Opportunity.Description</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Opportunity.ExpectedRevenue</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Opportunity.IsPrivate</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Opportunity.LeadSource</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Opportunity.NextStep</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Opportunity.Opportunity_Amendment__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Opportunity.Probability</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>false</editable><field>Opportunity.Stripe_Customer__c</field><readable>false</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Opportunity.Stripe_Customert__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Opportunity.Stripe_Subscription_Schedule_ID__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Opportunity.TotalOpportunityQuantity</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Opportunity.Type</field><readable>true</readable></fieldPermissions>
+
+    <fieldPermissions><editable>true</editable><field>PricebookEntry.Stripe_Price_ID__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>PricebookEntry.Stripe_Price__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>PricebookEntry.Subscription__c</field><readable>true</readable></fieldPermissions>
+
+    <fieldPermissions><editable>true</editable><field>Quote.AccountId</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Quote.AdditionalAddress</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Quote.AdditionalName</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Quote.BillingAddress</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Quote.BillingName</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Quote.ContactId</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Quote.ContractId</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Quote.Description</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Quote.Discount</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Quote.Email</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Quote.ExpirationDate</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Quote.Fax</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Quote.GrandTotal</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Quote.Phone</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Quote.QuoteToAddress</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Quote.QuoteToName</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Quote.ShippingAddress</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Quote.ShippingHandling</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Quote.ShippingName</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Quote.Status</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Quote.Subtotal</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Quote.Tax</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Quote.TotalPrice</field><readable>true</readable></fieldPermissions>
+
+    <fieldPermissions><editable>true</editable><field>Stripe_Customer__c.Account__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Stripe_Customer__c.Address_City__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Stripe_Customer__c.Address_Line_1__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Stripe_Customer__c.Address_Line_2__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Stripe_Customer__c.Address_Postal_Code__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Stripe_Customer__c.Address_State__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Stripe_Customer__c.Customer_Currency__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Stripe_Customer__c.Customer_Email__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Stripe_Customer__c.Domain_Suffix__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Stripe_Customer__c.Stripe_Account__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Stripe_Customer__c.Stripe_Customer_URL__c</field><readable>true</readable></fieldPermissions>
+
+    <fieldPermissions><editable>true</editable><field>Stripe_Invoice__c.Account__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Stripe_Invoice__c.Amount_Due__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Stripe_Invoice__c.StripeID__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Stripe_Invoice__c.Stripe_Customer_ID__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Stripe_Invoice__c.Stripe_Customer__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Stripe_Invoice__c.Stripe_Subscription__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Stripe_Invoice__c.Stripe_currency__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Stripe_Invoice__c.Stripe_subscription_ID__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Stripe_Invoice__c.amount_paid__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Stripe_Invoice__c.collection_method__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Stripe_Invoice__c.description__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Stripe_Invoice__c.invoice_number__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Stripe_Invoice__c.invoice_pdf_url__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Stripe_Invoice__c.payment_hosted_invoice_url__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Stripe_Invoice__c.status__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Stripe_Invoice__c.total__c</field><readable>true</readable></fieldPermissions>
+
+    <fieldPermissions><editable>true</editable><field>Stripe_Payout__c.Legal_Entity__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Stripe_Payout__c.Stripe_Account__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Stripe_Payout__c.approved__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Stripe_Payout__c.stripe_id__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Stripe_Payout__c.transfer_amount__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Stripe_Payout__c.transfer_status__c</field><readable>true</readable></fieldPermissions>
+
+    <fieldPermissions><editable>true</editable><field>Stripe_Price__c.Stripe_Account__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Stripe_Price__c.Stripe_Currency__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Stripe_Price__c.Stripe_Product__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Stripe_Price__c.nickname__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Stripe_Price__c.recurring_aggregate_usage__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Stripe_Price__c.recurring_interval__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Stripe_Price__c.recurring_interval_count__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Stripe_Price__c.recurring_meter__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Stripe_Price__c.recurring_usage_type__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Stripe_Price__c.type__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Stripe_Price__c.unit_amount__c</field><readable>true</readable></fieldPermissions>
+
+    <fieldPermissions><editable>true</editable><field>Stripe_Product__c.Product__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Stripe_Product__c.Stripe_Account__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Stripe_Product__c.Stripe_URL__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Stripe_Product__c.description__c</field><readable>true</readable></fieldPermissions>
+
+    <fieldPermissions><editable>true</editable><field>Stripe_Subscription__c.Stripe_Account__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Stripe_Subscription__c.Stripe_Customer__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Stripe_Subscription__c.Subscription_Currency__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Stripe_Subscription__c.collection_method__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Stripe_Subscription__c.current_period_end__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Stripe_Subscription__c.current_period_start__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Stripe_Subscription__c.description__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Stripe_Subscription__c.pause_collection_behavior__c</field><readable>true</readable></fieldPermissions>
+    <fieldPermissions><editable>true</editable><field>Stripe_Subscription__c.status__c</field><readable>true</readable></fieldPermissions>
+
+    <fieldPermissions><editable>true</editable><field>stripeGC__Stripe_Account__c.Publishable_key__c</field><readable>true</readable></fieldPermissions>
+
+    <!-- objectPermissions -->
     <objectPermissions>
         <object>Account</object>
-        <allowRead>true</allowRead>
-        <allowCreate>true</allowCreate>
-        <allowEdit>true</allowEdit>
-        <allowDelete>false</allowDelete>
-        <viewAllRecords>false</viewAllRecords>
-        <modifyAllRecords>false</modifyAllRecords>
+        <allowRead>true</allowRead><allowCreate>true</allowCreate><allowEdit>true</allowEdit><allowDelete>true</allowDelete>
+        <viewAllRecords>true</viewAllRecords><modifyAllRecords>true</modifyAllRecords>
     </objectPermissions>
-
     <objectPermissions>
         <object>Opportunity</object>
-        <allowRead>true</allowRead>
-        <allowCreate>true</allowCreate>
-        <allowEdit>true</allowEdit>
-        <allowDelete>false</allowDelete>
-        <viewAllRecords>false</viewAllRecords>
-        <modifyAllRecords>false</modifyAllRecords>
+        <allowRead>true</allowRead><allowCreate>true</allowCreate><allowEdit>true</allowEdit><allowDelete>true</allowDelete>
+        <viewAllRecords>true</viewAllRecords><modifyAllRecords>true</modifyAllRecords>
+    </objectPermissions>
+    <objectPermissions>
+        <object>Quote</object>
+        <allowRead>true</allowRead><allowCreate>true</allowCreate><allowEdit>true</allowEdit><allowDelete>true</allowDelete>
+        <viewAllRecords>true</viewAllRecords><modifyAllRecords>true</modifyAllRecords>
     </objectPermissions>
 
     <objectPermissions>
@@ -120,119 +192,60 @@
 
     <objectPermissions>
         <object>Individual</object>
-        <allowRead>true</allowRead>
-        <allowCreate>false</allowCreate>
-        <allowEdit>false</allowEdit>
-        <allowDelete>false</allowDelete>
-        <viewAllRecords>false</viewAllRecords>
-        <modifyAllRecords>false</modifyAllRecords>
+        <allowRead>true</allowRead><allowCreate>true</allowCreate><allowEdit>true</allowEdit><allowDelete>true</allowDelete>
+        <viewAllRecords>true</viewAllRecords><modifyAllRecords>true</modifyAllRecords>
     </objectPermissions>
-
     <objectPermissions>
         <object>LegalEntity</object>
-        <allowRead>true</allowRead>
-        <allowCreate>false</allowCreate>
-        <allowEdit>false</allowEdit>
-        <allowDelete>false</allowDelete>
-        <viewAllRecords>false</viewAllRecords>
-        <modifyAllRecords>false</modifyAllRecords>
-    </objectPermissions>
-
-    <!-- Stripe / demo objects -->
-    <objectPermissions>
-        <object>stripeGC__Stripe_Account__c</object>
-        <allowRead>true</allowRead>
-        <allowCreate>true</allowCreate>
-        <allowEdit>true</allowEdit>
-        <allowDelete>false</allowDelete>
-        <viewAllRecords>false</viewAllRecords>
-        <modifyAllRecords>false</modifyAllRecords>
+        <allowRead>true</allowRead><allowCreate>true</allowCreate><allowEdit>true</allowEdit><allowDelete>true</allowDelete>
+        <viewAllRecords>true</viewAllRecords><modifyAllRecords>true</modifyAllRecords>
     </objectPermissions>
 
     <objectPermissions>
         <object>Stripe_Customer__c</object>
-        <allowRead>true</allowRead>
-        <allowCreate>true</allowCreate>
-        <allowEdit>true</allowEdit>
-        <allowDelete>false</allowDelete>
-        <viewAllRecords>false</viewAllRecords>
-        <modifyAllRecords>false</modifyAllRecords>
+        <allowRead>true</allowRead><allowCreate>true</allowCreate><allowEdit>true</allowEdit><allowDelete>true</allowDelete>
+        <viewAllRecords>true</viewAllRecords><modifyAllRecords>true</modifyAllRecords>
     </objectPermissions>
-
     <objectPermissions>
         <object>Stripe_Invoice__c</object>
-        <allowRead>true</allowRead>
-        <allowCreate>true</allowCreate>
-        <allowEdit>true</allowEdit>
-        <allowDelete>false</allowDelete>
-        <viewAllRecords>false</viewAllRecords>
-        <modifyAllRecords>false</modifyAllRecords>
+        <allowRead>true</allowRead><allowCreate>true</allowCreate><allowEdit>true</allowEdit><allowDelete>true</allowDelete>
+        <viewAllRecords>true</viewAllRecords><modifyAllRecords>true</modifyAllRecords>
     </objectPermissions>
-
     <objectPermissions>
         <object>Stripe_Payout__c</object>
-        <allowRead>true</allowRead>
-        <allowCreate>true</allowCreate>
-        <allowEdit>true</allowEdit>
-        <allowDelete>false</allowDelete>
-        <viewAllRecords>false</viewAllRecords>
-        <modifyAllRecords>false</modifyAllRecords>
+        <allowRead>true</allowRead><allowCreate>true</allowCreate><allowEdit>true</allowEdit><allowDelete>true</allowDelete>
+        <viewAllRecords>true</viewAllRecords><modifyAllRecords>true</modifyAllRecords>
     </objectPermissions>
-
     <objectPermissions>
         <object>Stripe_Price__c</object>
-        <allowRead>true</allowRead>
-        <allowCreate>true</allowCreate>
-        <allowEdit>true</allowEdit>
-        <allowDelete>false</allowDelete>
-        <viewAllRecords>false</viewAllRecords>
-        <modifyAllRecords>false</modifyAllRecords>
+        <allowRead>true</allowRead><allowCreate>true</allowCreate><allowEdit>true</allowEdit><allowDelete>true</allowDelete>
+        <viewAllRecords>true</viewAllRecords><modifyAllRecords>true</modifyAllRecords>
     </objectPermissions>
-
     <objectPermissions>
         <object>Stripe_Product__c</object>
-        <allowRead>true</allowRead>
-        <allowCreate>true</allowCreate>
-        <allowEdit>true</allowEdit>
-        <allowDelete>false</allowDelete>
-        <viewAllRecords>false</viewAllRecords>
-        <modifyAllRecords>false</modifyAllRecords>
+        <allowRead>true</allowRead><allowCreate>true</allowCreate><allowEdit>true</allowEdit><allowDelete>true</allowDelete>
+        <viewAllRecords>true</viewAllRecords><modifyAllRecords>true</modifyAllRecords>
+    </objectPermissions>
+    <objectPermissions>
+        <object>Stripe_Subscription__c</object>
+        <allowRead>true</allowRead><allowCreate>true</allowCreate><allowEdit>true</allowEdit><allowDelete>true</allowDelete>
+        <viewAllRecords>true</viewAllRecords><modifyAllRecords>true</modifyAllRecords>
     </objectPermissions>
 
     <objectPermissions>
-        <object>Stripe_Subscription__c</object>
-        <allowRead>true</allowRead>
-        <allowCreate>true</allowCreate>
-        <allowEdit>true</allowEdit>
-        <allowDelete>false</allowDelete>
-        <viewAllRecords>false</viewAllRecords>
-        <modifyAllRecords>false</modifyAllRecords>
+        <object>stripeGC__Stripe_Account__c</object>
+        <allowRead>true</allowRead><allowCreate>true</allowCreate><allowEdit>true</allowEdit><allowDelete>true</allowDelete>
+        <viewAllRecords>true</viewAllRecords><modifyAllRecords>true</modifyAllRecords>
     </objectPermissions>
 
-    <!-- Tabs visibility       -->
-     
-    <tabSettings>
-        <tab>Demo_Configuration</tab>
-        <visibility>Visible</visibility>
-    </tabSettings>
-    <tabSettings>
-        <tab>Embedded_Checkout_Demo_Configuration</tab>
-        <visibility>Visible</visibility>
-    </tabSettings>
-    <tabSettings>
-        <tab>Payment_Screen</tab>
-        <visibility>Visible</visibility>
-    </tabSettings>
-    <tabSettings>
-        <tab>Stripe_Checkout_Demo_Configuration</tab>
-        <visibility>Visible</visibility>
-    </tabSettings>
-    <tabSettings>
-        <tab>Stripe_Payout__c</tab>
-        <visibility>Visible</visibility>
-    </tabSettings>
-    <tabSettings>
-        <tab>Stripe_QtC_Demo_Configuration</tab>
-        <visibility>Visible</visibility>
-    </tabSettings>
+    <!-- tab settings  -->
+    <tabSettings><tab>Demo_Configuration</tab><visibility>None</visibility></tabSettings>
+    <tabSettings><tab>Embedded_Checkout_Demo_Configuration</tab><visibility>None</visibility></tabSettings>
+    <tabSettings><tab>Payment_Screen</tab><visibility>None</visibility></tabSettings>
+
+    <tabSettings><tab>Stripe_Checkout_Demo_Configuration</tab><visibility>Visible</visibility></tabSettings>
+    <tabSettings><tab>Stripe_Payout__c</tab><visibility>Visible</visibility></tabSettings>
+    <tabSettings><tab>Stripe_QtC_Demo_Configuration</tab><visibility>Visible</visibility></tabSettings>
+    <tabSettings><tab>standard-Opportunity</tab><visibility>Visible</visibility></tabSettings>
+    <tabSettings><tab>standard-Quote</tab><visibility>Visible</visibility></tabSettings>
 </PermissionSet>

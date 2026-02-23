@@ -369,11 +369,7 @@
         <field>Stripe_Price__c.nickname__c</field>
         <readable>true</readable>
     </fieldPermissions>
-    <fieldPermissions>
-        <editable>true</editable>
-        <field>Stripe_Price__c.recurring_aggregate_usage__c</field>
-        <readable>true</readable>
-    </fieldPermissions>
+   
     <fieldPermissions>
         <editable>true</editable>
         <field>Stripe_Price__c.recurring_interval__c</field>
