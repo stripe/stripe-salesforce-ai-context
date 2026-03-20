@@ -345,7 +345,7 @@ All extensions share the `stripeGC` namespace and are installed through the app 
 4. Connect your Stripe account (test mode for development)
 5. Verify: Setup → Stripe for Salesforce → Accounts → Status should show "Connected"
 
-### 5. Configure CSP Trusted Sites (Critical for LWC)
+### 5. Configure CSP Trusted Sites (_Optional - Critical for LWC use cases and development_)
 
 ⚠️ **MUST be done via Setup UI—metadata deployment doesn't work correctly.**
 
