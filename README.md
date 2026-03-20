@@ -88,8 +88,8 @@ With AI tools + these context files, you can generate:
 **Required:**
 - Salesforce org (Enterprise Edition or higher recommended)
 - [Stripe Universal Connector](https://appexchange.salesforce.com/appxListingDetail?listingId=a0N3A00000EcrOnUAJ) v2.7.0+ (managed package)
-- [Stripe Connector AutoGen](https://github.com/stripe/salesforce-connector-AutoGen) 2025-04-30 version (extension package)
-- AI coding tool: [Claude Code](https://claude.com/code), [Cursor](https://cursor.sh/), or GitHub Copilot
+- [Stripe API Extension] 2025-04-30 version (extension package)
+- AI coding tool: Claude Code or Cursor or GitHub Copilot
 - [Salesforce CLI](https://developer.salesforce.com/tools/sfdxcli) (`sf` command)
 
 See [full installation guide](#prerequisites-detailed-setup) below for step-by-step instructions.
