@@ -139,9 +139,6 @@ stripe-salesforce-ai-grounding/
 ├── prompts/                        # Copy-paste prompts
 │   └── load-stripe-context.txt     # Universal context loader prompt
 │
-├── scripts/                        # Reference generation scripts
-│   ├── generate-invocable-reference.py
-│   └── generate-models-reference.py
 │
 └── examples/                       # Working code examples (3 Flows, 1 LWC, 3 Apex)
     ├── flows/                      # 3 validated Flow examples
