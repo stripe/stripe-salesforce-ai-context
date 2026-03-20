@@ -309,7 +309,7 @@ Using the API-Extension.md context, create an Apex invocable action that:
 ### 2. Install Stripe Universal Connector
 
 **Via AppExchange (Recommended):**
-1. Go to [Stripe for Salesforce on AppExchange](https://appexchange.salesforce.com/appxListingDetail?listingId=a0N3A00000EcrOnUAJ)
+1. Go to [Stripe for Salesforce on AppExchange](https://appexchange.salesforce.com/appxListingDetail?listingId=4dff0f8e-0b10-47c2-a3a3-f3905e7f7927)
 2. Click "Get It Now"
 3. Choose your org (Production or Sandbox)
 4. Install for "Admins Only" or "All Users"
