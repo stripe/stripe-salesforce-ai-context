@@ -532,7 +532,7 @@ This project is not affiliated with or endorsed by Stripe, Inc. or Salesforce, I
 ## Additional Resources
 
 - [Stripe App for Salesforce Documentation](https://docs.stripe.com/use-stripe-apps/stripe-app-for-salesforce/overview)
-- [Stripe Universal Connector (AppExchange)](https://appexchange.salesforce.com/appxListingDetail?listingId=a0N3A00000EcrOnUAJ)
+- [Stripe Universal Connector (AppExchange)](https://appexchange.salesforce.com/appxListingDetail?listingId=4dff0f8e-0b10-47c2-a3a3-f3905e7f7927)
 - [Stripe API Documentation](https://stripe.com/docs/api)
 - [Salesforce Flow Builder Documentation](https://help.salesforce.com/s/articleView?id=sf.flow.htm)
 - [Stripe.js Reference](https://stripe.com/docs/js)
