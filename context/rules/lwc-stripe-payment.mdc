@@ -1,0 +1,390 @@
+---
+description: Rules for building LWC components that integrate Stripe Payment Element with the Universal Connector
+globs: "**/*.{js,html,cls}"
+alwaysApply: false
+---
+
+# LWC + Stripe Universal Connector Integration
+
+---
+
+## Part 1: Universal Patterns
+
+Applies to any LWC that integrates with Stripe via the Universal Connector. These patterns hold regardless of which Salesforce object or payment flow you're building.
+
+---
+
+### CSP Trusted Sites (CRITICAL — Manual Setup Required)
+
+Stripe Payment Element renders inside secure iframes from `js.stripe.com`. Salesforce's CSP `frame-src` directive blocks third-party iframes by default. Must be configured via **Setup UI** — metadata deployment maps `context=All` incorrectly and does not check all directive boxes.
+
+**Required** (Setup > CSP Trusted Sites):
+
+| Trusted URL | connect-src | font-src | frame-src | img-src | media-src | style-src |
+|---|---|---|---|---|---|---|
+| `https://js.stripe.com` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `https://api.stripe.com` | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+
+`frame-src` is the critical one. Without it, `loadScript()` succeeds and the PaymentIntent is created, but the Payment Element iframes render as an empty container with no visible error in the UI — only a CSP violation in the browser console.
+
+---
+
+### Loading Stripe.js
+
+Always load from CDN via `lightning/platformResourceLoader`. Never self-host — Stripe requires CDN loading for PCI compliance.
+
+```javascript
+import { loadScript } from 'lightning/platformResourceLoader';
+const STRIPE_JS_URL = 'https://js.stripe.com/v3/';
+
+// Guard with a flag — loadScript throws if called twice on the same resource
+if (!this.stripeJsLoaded) {
+    await loadScript(this, STRIPE_JS_URL);
+    this.stripeJsLoaded = true;
+}
+this.stripe = window.Stripe(publishableKey);
+```
+
+Parallelize Stripe.js loading with your Apex call using `Promise.all` — they don't depend on each other:
+```javascript
+const [config] = await Promise.all([
+    createPaymentIntent({ recordId: this.recordId }),
+    loadScript(this, STRIPE_JS_URL)
+]);
+```
+
+---
+
+### Shadow DOM — Data Attributes, Not IDs
+
+LWC Shadow DOM scopes element IDs (e.g. `id="payment-element"` → `id="payment-element-86"`). External scripts like Stripe.js cannot use `document.getElementById()`. Always use data attributes:
+
+```html
+<!-- ✅ Correct -->
+<div data-stripe-element="payment"></div>
+
+<!-- ❌ Wrong — ID is scoped, Stripe.js can't find it -->
+<div id="payment-element"></div>
+```
+
+```javascript
+const container = this.template.querySelector('[data-stripe-element="payment"]');
+this.paymentElement.mount(container);
+```
+
+---
+
+### LWC Lifecycle Hooks for Stripe
+
+**`connectedCallback` or user action handler** — load Stripe.js and create PaymentIntent. Never on page load; only on explicit user action to avoid orphan PaymentIntents.
+
+**`renderedCallback`** — the only safe place to mount the Payment Element. The container div doesn't exist until a reactive property (`showPaymentForm = true`) triggers a re-render. Always use a guard flag:
+
+```javascript
+renderedCallback() {
+    if (this.paymentElement && this.showPaymentForm && !this.paymentElementMounted) {
+        const container = this.template.querySelector('[data-stripe-element="payment"]');
+        if (container) {
+            this.paymentElement.mount(container);
+            this.paymentElementMounted = true;
+        }
+    }
+}
+```
+
+**`disconnectedCallback`** — always unmount to prevent memory leaks:
+```javascript
+disconnectedCallback() {
+    if (this.paymentElement) {
+        try { this.paymentElement.unmount(); } catch(e) {}
+    }
+}
+```
+
+---
+
+### Security & PCI Compliance
+
+- **Publishable key** — safe to send to the client; identifies your Stripe account, not a secret
+- **Secret key** — never touched by LWC; handled entirely by the Universal Connector via encrypted `Access_Token__c`
+- **`clientSecret`** — transient, single-use, never persisted in Salesforce; return it from Apex and use it for the session only
+- **Card data** — never touches Salesforce; Stripe Payment Element uses secure iframes that POST directly to Stripe's servers
+
+---
+
+### Payment Confirmation
+
+Use `redirect: 'if_required'` to handle 3D Secure / SCA without forcing a page redirect:
+
+```javascript
+const { error, paymentIntent } = await this.stripe.confirmPayment({
+    elements: this.elements,
+    confirmParams: { return_url: window.location.href },
+    redirect: 'if_required'
+});
+```
+
+After confirmation, `paymentIntent` contains:
+- `paymentIntent.id` — the `pi_xxx` PaymentIntent ID
+- `paymentIntent.latest_charge` — the `ch_xxx` Charge ID (available after `succeeded`)
+- `paymentIntent.status` — `succeeded`, `requires_action`, or another terminal state
+
+Always handle all three status branches: `succeeded`, `requires_action` (3DS), and fallback error.
+
+Client-side `paymentIntent.status === 'succeeded'` is **not** enough to mark the Salesforce record as paid. Treat the browser result as a UX signal only. Before setting any "captured", "paid", or reconciliation fields in Salesforce, make a server-side verification call to Stripe using the Universal Connector and confirm:
+
+- the PaymentIntent still has `status = succeeded`
+- the PaymentIntent metadata maps back to the expected Salesforce record
+- the amount and currency still match the Salesforce-side expectation
+- the charge or payment intent has not already been linked to a different Salesforce record
+
+---
+
+### Post-Payment: Writing Back to Salesforce
+
+Call a separate `@AuraEnabled` Apex method after confirmation — never block the success UI waiting for DML. Use fire-and-forget:
+
+```javascript
+recordPaymentSuccess({
+    recordId: this.recordId,
+    paymentIntentId: paymentIntent.id,
+    chargeId: paymentIntent.latest_charge || ''
+}).then(() => {
+    getRecordNotifyChange([{ recordId: this.recordId }]);
+}).catch(err => console.error(err));
+```
+
+Use `getRecordNotifyChange` (not `refreshApex`) to push the wire refresh to all components watching the record after the DML update.
+
+If you write back to Salesforce after payment, prefer one of these patterns:
+
+1. **Best**: fetch the PaymentIntent server-side and verify status, metadata, amount, and currency before updating any record fields
+2. **Acceptable for demos only**: clearly document that the component trusts the client-confirmed result and is not a production-grade payment reconciliation path
+
+Never blindly trust `paymentIntent.id` or `latest_charge` values supplied by the browser when updating business-critical fields.
+
+**Idempotency state**: Wire a "payment captured" boolean field from the record. Gate your initial UI state on it so the Pay Now button never re-appears on a previously paid record — this works retroactively for all existing records with the field already set:
+
+```javascript
+get showPayButton() {
+    return !this.paymentCaptured && !this.paymentSuccess && !this.showPaymentForm;
+}
+get showCapturedState() {
+    return this.paymentCaptured && !this.paymentSuccess; // in-session success takes priority
+}
+```
+
+---
+
+### Charge Record Timing (Webhook Lag)
+
+When `confirmPayment` succeeds on the client, `stripeGC__Charge__c` almost certainly does not exist in SF yet — the `charge.succeeded` webhook is async and takes seconds to arrive and be processed. Never query for it synchronously in the post-payment Apex method.
+
+Pattern: try the sync lookup first (fast path for cases where webhook was already processed), then fall back to a Queueable with delay:
+
+```apex
+List<stripeGC__Charge__c> charges = [
+    SELECT Id FROM stripeGC__Charge__c
+    WHERE stripeGC__Stripe_Id__c = :chargeId
+    WITH USER_MODE LIMIT 1
+];
+if (!charges.isEmpty()) {
+    charges[0].Opportunity__c = recordId;
+    update charges[0];
+} else {
+    System.enqueueJob(new ChargeLinkerQueueable(recordId, chargeId, 0), 1);
+}
+```
+
+Queueable should retry up to 3 times with 1-minute delay (`System.enqueueJob(job, delayInMinutes)` — available API 57+). The delay is a backend-only operation with zero UX impact.
+
+When linking the resulting `stripeGC__Charge__c` or updating the parent Salesforce record, prefer user-mode DML or explicit CRUD/FLS enforcement if the component is intended as a reusable production reference. `with sharing` plus `WITH USER_MODE` SOQL does not automatically protect field writes.
+
+---
+
+### Stripe Customer Lookup
+
+**The relationship is Customer → Account, not Account → Customer.** `stripeGC__Customer__c` holds the lookup to Account via `stripeGC__Account__c`. The Account page layout does not surface the Stripe Customer ID.
+
+Always query the Customer by AccountId to get the `cus_xxx` ID for PaymentIntent creation:
+
+```apex
+List<stripeGC__Customer__c> customers = [
+    SELECT stripeGC__Stripe_Id__c
+    FROM stripeGC__Customer__c
+    WHERE stripeGC__Account__c = :accountId
+    WITH USER_MODE
+    LIMIT 1
+];
+if (!customers.isEmpty() && String.isNotBlank(customers[0].stripeGC__Stripe_Id__c)) {
+    params.customer = customers[0].stripeGC__Stripe_Id__c;
+}
+```
+
+If no Customer exists for the Account yet (e.g. Customer creation flow hasn't run), omit `params.customer` — the PaymentIntent is created as a guest. This is expected and handled gracefully by leaving the field null.
+
+---
+
+### PaymentIntent Metadata
+
+Use `v02_Metadata` and `v02_AdditionalString` to attach key-value pairs to a PaymentIntent. The property name is `listAdditionalStringField` — not obvious from the class name:
+
+```apex
+stripeGC.v02_Metadata metadata = new stripeGC.v02_Metadata();
+metadata.listAdditionalStringField = new List<stripeGC.v02_AdditionalString>{
+    new stripeGC.v02_AdditionalString('salesforce_record_id', recordId),
+    new stripeGC.v02_AdditionalString('salesforce_record_name', recordName)
+};
+params.metadata = metadata;
+```
+
+Metadata lives on the Stripe PaymentIntent only — visible in the Stripe Dashboard, useful for reconciliation. It does **not** automatically populate any SF field (including `Charge.Opportunity__c`). Any SF field population requires explicit Apex or a Flow.
+
+---
+
+### Universal Connector Apex Conventions
+
+- Always pass `accountRecordId` (Stripe Account SF record ID, not the Stripe account string)
+- Always set `performDmlSaveAfterCalls = true` for standalone Apex calls; `false` only when chaining multiple callouts
+- Always set `ignoreBillingSyncEventProcessing = true` to prevent event processing loops
+- Amount is always in smallest currency unit (dollars × 100 = cents)
+- `WITH USER_MODE` on all SOQL queries
+- Wrap the Stripe Account lookup in a connected check: `WHERE stripeGC__Is_Connected__c = true`
+
+---
+
+### Common Mistakes
+
+1. **Using element IDs for Stripe mount target** — Shadow DOM scopes them; use `data-*` attributes
+2. **Mounting Payment Element in connectedCallback** — DOM container doesn't exist yet; use `renderedCallback` with guard flag
+3. **Self-hosting Stripe.js** — Violates Stripe TOS; always load from `js.stripe.com` CDN
+4. **Deploying CSP Trusted Sites via metadata** — `context=All` doesn't check all boxes; configure via Setup UI
+5. **Relying on frame-src being set automatically** — It's the critical checkbox; without it, Payment Element renders empty with no obvious error
+6. **Creating PaymentIntent on page load** — Creates orphan intents; only create on explicit user action
+7. **Persisting clientSecret** — Never store it; it's single-use and session-scoped
+8. **Forgetting amount conversion** — Salesforce currency fields are dollars; Stripe expects cents (× 100)
+9. **Querying `stripeGC__Charge__c` synchronously after confirmPayment** — Webhook lag means the record won't exist yet; use Queueable with delay
+10. **Looking up Stripe Customer ID from Account** — The lookup is on `stripeGC__Customer__c.stripeGC__Account__c`, not on Account; query Customer by AccountId
+11. **Using `refreshApex` after DML** — Use `getRecordNotifyChange([{ recordId }])` to notify all wire adapters watching the record
+12. **Showing action buttons without checking payment state** — Always wire a captured/processed boolean field from the record and gate all action states on it
+13. **Marking Salesforce records as paid from browser state alone** — always re-verify the PaymentIntent server-side before updating business-critical fields
+14. **Assuming `with sharing` covers field writes** — it does not enforce CRUD/FLS on DML; use user-mode DML or explicit checks for reusable production assets
+
+---
+
+## Part 2: Reference Component — `stripePayment` LWC
+
+Reference implementation of a Payment Element embedded on the Opportunity record page. Triggers on Closed Won stage, processes one-time payments, and writes results back to the Opportunity and Stripe Charge records.
+
+---
+
+### Reference Files
+
+| File | Purpose |
+|---|---|
+| `force-app/main/default/lwc/stripePayment/` | The LWC (JS, HTML, CSS, meta.xml) |
+| `force-app/main/default/classes/StripePaymentController.cls` | Apex — createPaymentIntent, recordPaymentSuccess |
+| `force-app/main/default/classes/ChargeOpportunityLinkerQueueable.cls` | Retry Queueable for Charge → Opportunity linking |
+
+---
+
+### Architecture
+
+```
+Opportunity (Closed Won) — record page loads
+       │  @wire checks StageName + Payment_Captured__c
+       │
+       ├─ Payment_Captured__c = true  →  show "Payment Captured" state (no button)
+       │
+       └─ Payment_Captured__c = false →  show Pay Now button
+              │
+              ▼  user clicks Pay Now
+       Promise.all([createPaymentIntent(), loadScript(Stripe.js)])
+              │
+              ▼
+       StripePaymentController.createPaymentIntent()
+              │  Queries Opportunity (Amount, AccountId)
+              │  Queries stripeGC__Customer__c by AccountId → params.customer
+              │  Queries stripeGC__Stripe_Account__c → publishableKey
+              │  Calls v02_CreatePaymentIntents with metadata[opportunity_id]
+              │  Returns { publishableKey, clientSecret, amount, customerEmail }
+              │
+              ▼
+       LWC mounts Payment Element (renderedCallback)
+              │
+              ▼  user completes payment
+       stripe.confirmPayment() → paymentIntent.status = 'succeeded'
+              │
+              ├─ Show success UI immediately
+              │
+              └─ Fire-and-forget: recordPaymentSuccess(opportunityId, pi_xxx, ch_xxx)
+                     │  UPDATE Opportunity: Payment_Captured__c=true, Stripe_Payment_ID__c=pi_xxx
+                     │  Try sync Charge link → if not found: enqueue ChargeOpportunityLinkerQueueable
+                     └─ getRecordNotifyChange → wire refreshes, button stays hidden
+```
+
+---
+
+### Opportunity Fields Used
+
+| Field | API Name | Purpose |
+|---|---|---|
+| Stage | `StageName` | Gate component visibility to Closed Won |
+| Amount | `Amount` | Payment amount (converted ×100 for Stripe) |
+| Name | `Name` | PaymentIntent description + success message |
+| Payment Captured | `Payment_Captured__c` | Hides Pay Now button when already paid |
+| Stripe Payment ID | `Stripe_Payment_ID__c` | Stores `pi_xxx` after successful payment |
+
+---
+
+### Stripe Account Query
+
+```apex
+stripeGC__Stripe_Account__c stripeAccount = [
+    SELECT Id, stripeGC__Publishable_Key__c
+    FROM stripeGC__Stripe_Account__c
+    WHERE stripeGC__Is_Connected__c = true
+    WITH USER_MODE
+    ORDER BY CreatedDate ASC
+    LIMIT 1
+];
+```
+
+---
+
+### PaymentIntent Params (this component)
+
+```apex
+params.accountRecordId = stripeAccount.Id;
+params.amount = (Integer)(opp.Amount * 100);
+params.r_currency = 'usd';
+params.setupFutureUsage = 'off_session';
+params.description = 'Payment for Opportunity: ' + opp.Name;
+params.performDmlSaveAfterCalls = true;
+params.ignoreBillingSyncEventProcessing = true;
+params.customer = customers[0].stripeGC__Stripe_Id__c;  // if Account has a Customer
+params.receiptEmail = contactEmail;                       // from primary OpportunityContactRole
+params.metadata = /* opportunity_id + opportunity_name */;
+```
+
+---
+
+### Component State Machine
+
+| State | Condition | What shows |
+|---|---|---|
+| `showCaptured` | `paymentCaptured && !paymentSuccess` | "Payment Captured" + Stripe Payment ID |
+| `showInitial` | `!showPaymentForm && !paymentSuccess && !showError && !paymentCaptured` | Amount summary + Pay Now button |
+| `showPaymentForm` | `showPaymentForm = true` | Stripe Payment Element + Complete/Cancel |
+| `paymentSuccess` | set after `confirmPayment` succeeds | Success icon + amount collected message |
+| `showError` | `initError && !showPaymentForm && !paymentSuccess` | Error message + Try Again button |
+
+---
+
+### Deployment
+
+```bash
+sf project deploy start --source-dir force-app -o <your-org-alias>
+```
+
+After first deploy: add `stripePayment` component to the Opportunity Record Page via Lightning App Builder (Edit Page > Custom components > drag "Stripe Payment").

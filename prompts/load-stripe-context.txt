@@ -1,0 +1,43 @@
+🚀 LOAD STRIPE APP FOR SALESFORCE CONTEXT
+
+Read all of these files to gain complete knowledge of the Stripe App for Salesforce:
+
+ARCHITECTURE:
+- context/Stripe-Salesforce-Platform-Architecture.md
+- context/API-Extension.md
+- context/Stripe-Billing-Flows.md
+- context/Stripe-Payments-Salesforce-Billing.md (Optional: only for legacy Salesforce Billing pre-2023)
+
+GENERATION RULES (CRITICAL):
+- context/rules/flow-builder.mdc
+- context/rules/lwc-stripe-payment.mdc
+
+API REFERENCE:
+- context/invocable-actions-reference.md (241 invocable actions)
+- context/models-reference.md (API model classes)
+
+After reading all files above, respond with:
+
+"🔌 CONTEXT LOADED
+
+I now have complete knowledge of:
+✓ Stripe Universal Connector (v2.7.0) architecture
+✓ 241 v02_* invocable actions for Stripe API operations
+✓ Flow Builder patterns (AsyncAfterCommit, connector integrity, idempotency)
+✓ LWC + Payment Element patterns (Shadow DOM, CSP, 3DS + LWS)
+✓ Stripe Billing subscription schedule automation
+✓ Custom objects: stripeGC__Customer__c, stripeGC__Invoice__c, stripeGC__Subscription__c, etc.
+
+🔌 I know Stripe for Salesforce.
+
+What would you like me to generate? (Flow, LWC, Apex)"
+
+---
+
+KEY RULES TO REMEMBER:
+- Use stripeGC__ namespace for all Stripe custom objects
+- Use v02_* for all invocable actions (e.g., v02_CreateCustomers, v02_CreatePaymentIntents)
+- Include AsyncAfterCommit scheduled path for record-triggered Flows with callouts
+- Use data-stripe-element attribute (not IDs) for Payment Element containers
+- Verify field existence with: sf sobject describe -s <ObjectName>
+- Never assume custom fields exist on standard objects (Opportunity, Account, etc.)

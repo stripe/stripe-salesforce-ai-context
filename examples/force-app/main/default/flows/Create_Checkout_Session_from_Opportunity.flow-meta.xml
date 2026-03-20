@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <actionCalls>
+        <name>Create_Checkout_Session</name>
+        <label>Create Checkout Session</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <actionName>CreateCheckoutSessionAction</actionName>
+        <actionType>apex</actionType>
+        <connector>
+            <targetReference>Check_for_Errors</targetReference>
+        </connector>
+        <faultConnector>
+            <targetReference>Create_Error_Sync_Log_API_Failure</targetReference>
+        </faultConnector>
+        <flowTransactionModel>CurrentTransaction</flowTransactionModel>
+        <inputParameters>
+            <name>accountRecordId</name>
+            <value>
+                <elementReference>Get_Stripe_Account.Id</elementReference>
+            </value>
+        </inputParameters>
+        <inputParameters>
+            <name>amount</name>
+            <value>
+                <numberValue>10000.0</numberValue>
+            </value>
+        </inputParameters>
+        <inputParameters>
+            <name>cancelUrl</name>
+            <value>
+                <stringValue>https://example.com/cancel</stringValue>
+            </value>
+        </inputParameters>
+        <inputParameters>
+            <name>currencyCode</name>
+            <value>
+                <stringValue>usd</stringValue>
+            </value>
+        </inputParameters>
+        <inputParameters>
+            <name>idempotencyKey</name>
+            <value>
+                <stringValue>{!$Flow.InterviewGuid}-Create-Checkout-Session-{!$Record.Id}</stringValue>
+            </value>
+        </inputParameters>
+        <inputParameters>
+            <name>productName</name>
+            <value>
+                <elementReference>$Record.Name</elementReference>
+            </value>
+        </inputParameters>
+        <inputParameters>
+            <name>successUrl</name>
+            <value>
+                <stringValue>https://example.com/success</stringValue>
+            </value>
+        </inputParameters>
+        <nameSegment>CreateCheckoutSessionAction</nameSegment>
+        <offset>0</offset>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </actionCalls>
+    <apiVersion>64.0</apiVersion>
+    <areMetricsLoggedToDataCloud>false</areMetricsLoggedToDataCloud>
+    <decisions>
+        <name>Check_for_Errors</name>
+        <label>Check for Errors</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <defaultConnector>
+            <targetReference>Update_Opportunity</targetReference>
+        </defaultConnector>
+        <defaultConnectorLabel>Success</defaultConnectorLabel>
+        <rules>
+            <name>Has_Error</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>Create_Checkout_Session.isSuccess</leftValueReference>
+                <operator>EqualTo</operator>
+                <rightValue>
+                    <booleanValue>false</booleanValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Create_Error_Sync_Log_Checkout_Failed</targetReference>
+            </connector>
+            <label>Has Error</label>
+        </rules>
+    </decisions>
+    <decisions>
+        <name>Check_if_Stripe_Account_Exists</name>
+        <label>Check if Stripe Account Exists</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <defaultConnector>
+            <targetReference>Create_Error_Sync_Log_Stripe_Account_Not_Found</targetReference>
+        </defaultConnector>
+        <defaultConnectorLabel>Does Not Exist</defaultConnectorLabel>
+        <rules>
+            <name>Stripe_Account_Exists</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>Get_Stripe_Account</leftValueReference>
+                <operator>IsNull</operator>
+                <rightValue>
+                    <booleanValue>false</booleanValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Create_Checkout_Session</targetReference>
+            </connector>
+            <label>Stripe Account Exists</label>
+        </rules>
+    </decisions>
+    <description>When an Opportunity is set to Closed Won, create a Stripe Checkout Session for $100 (one-time payment). The checkout URL is stored on the Opportunity Description. Replace success_url, cancel_url, and the Stripe Account Name before activating.</description>
+    <environments>Default</environments>
+    <interviewLabel>Create Checkout Session from Opportunity {!$Flow.CurrentDateTime}</interviewLabel>
+    <isTemplate>true</isTemplate>
+    <label>Create Checkout Session from Opportunity</label>
+    <processMetadataValues>
+        <name>BuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>CanvasMode</name>
+        <value>
+            <stringValue>AUTO_LAYOUT_CANVAS</stringValue>
+        </value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>OriginBuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processType>AutoLaunchedFlow</processType>
+    <recordCreates>
+        <name>Create_Error_Sync_Log_Stripe_Account_Not_Found</name>
+        <label>Create Error Sync Log - Stripe Account Not Found</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <inputAssignments>
+            <field>stripeGC__Action_Taken__c</field>
+            <value>
+                <stringValue>Failed Creating Checkout Session from Opportunity</stringValue>
+            </value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>stripeGC__Error_Details__c</field>
+            <value>
+                <stringValue>Opportunity {!$Record.Name} ({!$Record.Id})</stringValue>
+            </value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>stripeGC__Message__c</field>
+            <value>
+                <stringValue>Unable to locate Stripe Account. Please ensure a Stripe Account is configured.</stringValue>
+            </value>
+        </inputAssignments>
+        <object>stripeGC__Sync_Log__c</object>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordCreates>
+    <recordCreates>
+        <name>Create_Error_Sync_Log_API_Failure</name>
+        <label>Create Error Sync Log - API Failure</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <inputAssignments>
+            <field>stripeGC__Action_Taken__c</field>
+            <value>
+                <stringValue>Failed Creating Checkout Session from Opportunity</stringValue>
+            </value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>stripeGC__Error_Details__c</field>
+            <value>
+                <stringValue>Opportunity {!$Record.Name} ({!$Record.Id})</stringValue>
+            </value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>stripeGC__Message__c</field>
+            <value>
+                <elementReference>$Flow.FaultMessage</elementReference>
+            </value>
+        </inputAssignments>
+        <object>stripeGC__Sync_Log__c</object>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordCreates>
+    <recordCreates>
+        <name>Create_Error_Sync_Log_Checkout_Failed</name>
+        <label>Create Error Sync Log - Checkout Failed</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <inputAssignments>
+            <field>stripeGC__Action_Taken__c</field>
+            <value>
+                <stringValue>Failed Creating Checkout Session from Opportunity</stringValue>
+            </value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>stripeGC__Error_Details__c</field>
+            <value>
+                <stringValue>Opportunity {!$Record.Name} ({!$Record.Id})</stringValue>
+            </value>
+        </inputAssignments>
+        <inputAssignments>
+            <field>stripeGC__Message__c</field>
+            <value>
+                <elementReference>Create_Checkout_Session.errorMessage</elementReference>
+            </value>
+        </inputAssignments>
+        <object>stripeGC__Sync_Log__c</object>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordCreates>
+    <recordLookups>
+        <name>Get_Stripe_Account</name>
+        <label>Get Stripe Account</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
+        <connector>
+            <targetReference>Check_if_Stripe_Account_Exists</targetReference>
+        </connector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>Name</field>
+            <operator>EqualTo</operator>
+            <value>
+                <stringValue>Demo Stripe Account Name</stringValue>
+            </value>
+        </filters>
+        <getFirstRecordOnly>true</getFirstRecordOnly>
+        <object>stripeGC__Stripe_Account__c</object>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordLookups>
+    <recordUpdates>
+        <name>Update_Opportunity</name>
+        <label>Update Opportunity</label>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <inputAssignments>
+            <field>Description</field>
+            <value>
+                <stringValue>Checkout Session URL: {!Create_Checkout_Session.checkoutUrl}</stringValue>
+            </value>
+        </inputAssignments>
+        <inputReference>$Record</inputReference>
+    </recordUpdates>
+    <start>
+        <locationX>0</locationX>
+        <locationY>0</locationY>
+        <doesRequireRecordChangedToMeetCriteria>true</doesRequireRecordChangedToMeetCriteria>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>StageName</field>
+            <operator>EqualTo</operator>
+            <value>
+                <stringValue>Closed Won</stringValue>
+            </value>
+        </filters>
+        <object>Opportunity</object>
+        <recordTriggerType>CreateAndUpdate</recordTriggerType>
+        <scheduledPaths>
+            <connector>
+                <targetReference>Get_Stripe_Account</targetReference>
+            </connector>
+            <pathType>AsyncAfterCommit</pathType>
+        </scheduledPaths>
+        <triggerType>RecordAfterSave</triggerType>
+    </start>
+    <status>Draft</status>
+</Flow>

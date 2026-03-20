@@ -1,0 +1,146 @@
+<template>
+    <template lwc:if={isClosedWon}>
+        <lightning-card title="Stripe Payment" icon-name="custom:custom16">
+
+            <!-- Already captured: payment collected in a prior session -->
+            <template lwc:if={showCaptured}>
+                <div class="slds-p-around_medium slds-text-align_center">
+                    <lightning-icon icon-name="action:approval" size="large" class="slds-m-bottom_small"></lightning-icon>
+                    <h3 class="slds-text-heading_medium slds-m-bottom_x-small">Payment Captured</h3>
+                    <p class="slds-text-body_regular slds-text-color_weak">
+                        Payment has already been collected for this opportunity.
+                    </p>
+                    <template lwc:if={stripePaymentId}>
+                        <p class="slds-text-body_small slds-text-color_weak slds-m-top_x-small">
+                            Stripe Payment ID: {stripePaymentId}
+                        </p>
+                    </template>
+                </div>
+            </template>
+
+            <!-- Initial state: summary + Pay Now button -->
+            <template lwc:if={showInitial}>
+                <div class="slds-p-around_medium">
+                    <div class="slds-m-bottom_medium">
+                        <dl class="slds-dl_horizontal">
+                            <dt class="slds-dl_horizontal__label slds-text-color_weak">Amount</dt>
+                            <dd class="slds-dl_horizontal__detail">
+                                <lightning-formatted-number
+                                    value={opportunityAmount}
+                                    format-style="currency"
+                                    currency-code="USD">
+                                </lightning-formatted-number>
+                            </dd>
+                            <template lwc:if={customerEmail}>
+                                <dt class="slds-dl_horizontal__label slds-text-color_weak">Email</dt>
+                                <dd class="slds-dl_horizontal__detail">{customerEmail}</dd>
+                            </template>
+                        </dl>
+                    </div>
+                    <lightning-button
+                        label="Pay Now"
+                        variant="brand"
+                        onclick={handlePayNow}
+                        disabled={isLoading}>
+                    </lightning-button>
+                    <template lwc:if={isLoading}>
+                        <lightning-spinner alternative-text="Initializing payment" size="small" class="slds-m-left_small"></lightning-spinner>
+                    </template>
+                </div>
+            </template>
+
+            <!-- Payment form with Stripe Payment Element -->
+            <template lwc:if={showPaymentForm}>
+                <div class="slds-p-around_medium">
+                    <div class="slds-m-bottom_medium">
+                        <p class="slds-text-title_caps slds-text-color_weak">Amount</p>
+                        <p class="amount-display">
+                            <lightning-formatted-number
+                                value={opportunityAmount}
+                                format-style="currency"
+                                currency-code="USD">
+                            </lightning-formatted-number>
+                        </p>
+                    </div>
+
+                    <div class="stripe-element-container slds-m-bottom_medium">
+                        <div data-stripe-element="payment"></div>
+                    </div>
+
+                    <template lwc:if={errorMessage}>
+                        <div class="slds-notify slds-notify_toast slds-theme_error slds-m-bottom_small" role="alert">
+                            <div class="slds-notify__content">
+                                <p class="slds-text-body_regular">{errorMessage}</p>
+                            </div>
+                        </div>
+                    </template>
+
+                    <div class="slds-grid slds-gutters">
+                        <div class="slds-col">
+                            <lightning-button
+                                label="Complete Payment"
+                                variant="brand"
+                                onclick={handleConfirmPayment}
+                                disabled={isProcessingOrLoading}>
+                            </lightning-button>
+                        </div>
+                        <div class="slds-col slds-text-align_right">
+                            <lightning-button
+                                label="Cancel"
+                                variant="neutral"
+                                onclick={handleCancel}
+                                disabled={isProcessing}>
+                            </lightning-button>
+                        </div>
+                    </div>
+
+                    <template lwc:if={isProcessing}>
+                        <div class="slds-m-top_small slds-text-color_weak">
+                            <lightning-spinner alternative-text="Processing payment" size="small"></lightning-spinner>
+                            <span class="slds-m-left_small">Processing payment...</span>
+                        </div>
+                    </template>
+                </div>
+            </template>
+
+            <!-- Success state -->
+            <template lwc:if={paymentSuccess}>
+                <div class="slds-p-around_medium slds-text-align_center">
+                    <lightning-icon icon-name="action:approval" size="large" class="slds-m-bottom_small"></lightning-icon>
+                    <h3 class="slds-text-heading_medium slds-m-bottom_x-small">Payment Submitted</h3>
+                    <p class="slds-text-body_regular slds-text-color_weak">
+                        Your payment of
+                        <lightning-formatted-number
+                            value={opportunityAmount}
+                            format-style="currency"
+                            currency-code="USD">
+                        </lightning-formatted-number>
+                        has been submitted successfully.
+                    </p>
+                    <p class="slds-text-body_small slds-text-color_weak slds-m-top_small">
+                        The page will refresh automatically once payment is confirmed.
+                    </p>
+                </div>
+            </template>
+
+            <!-- Error state (initialization failures) -->
+            <template lwc:if={showError}>
+                <div class="slds-p-around_medium">
+                    <div class="slds-illustration slds-illustration_small">
+                        <div class="slds-text-longform">
+                            <h3 class="slds-text-heading_medium">Something went wrong</h3>
+                            <p class="slds-text-body_regular">{errorMessage}</p>
+                        </div>
+                    </div>
+                    <lightning-button
+                        label="Try Again"
+                        variant="neutral"
+                        onclick={handleRetry}
+                        class="slds-m-top_small">
+                    </lightning-button>
+                </div>
+            </template>
+
+        </lightning-card>
+    </template>
+</template>

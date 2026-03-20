@@ -1,0 +1,406 @@
+---
+description: Rules for generating Salesforce Flow XML that uses the Stripe Universal Connector and AutoGen invocable actions
+globs: "**/*.flow-meta.xml"
+alwaysApply: false
+---
+
+# Stripe Flow Builder
+
+Generate Salesforce Flow metadata XML (`*.flow-meta.xml`) for automations that integrate Salesforce with Stripe using the Universal Connector's invocable actions.
+
+## Reference Codebase
+
+- **Invocable actions**: AutoGen `v02_*` classes (Create, Get, Update, Delete, List, Post) — 241 auto-generated classes
+- **API models**: Stripe API response/request models as Apex classes
+- **Proven flow examples**: 14 production flows in the billing-flows extension for reference patterns
+- **Custom objects**: Stripe custom objects (Customer__c, Invoice__c, Product__c, etc.) in the Universal Connector package
+
+## Connector Integrity (CRITICAL)
+
+Every flow element MUST have an incoming connection (except the `start` element). An orphaned element — one that is defined but has no connector pointing to it — will cause Flow Builder to reject auto-layout and display a "one or more elements without an incoming connection" error.
+
+**Common mistake**: When a decision branches to a record lookup followed by another decision, ensure the decision connector targets the **record lookup**, not the downstream decision. For example:
+
+```
+WRONG:  Check_if_Account_Exists → (Account Exists) → Check_if_Stripe_Account_Exists
+                                                       ↑ Get_Stripe_Account is orphaned!
+
+RIGHT:  Check_if_Account_Exists → (Account Exists) → Get_Stripe_Account → Check_if_Stripe_Account_Exists
+```
+
+**Verification**: After generating a flow, trace every `<connector>`, `<faultConnector>`, `<defaultConnector>`, and `<scheduledPaths>` `<connector>` target. Confirm each `<name>` element appears as a `<targetReference>` somewhere.
+
+## Flow XML Skeleton
+
+Every flow must include this boilerplate structure. API version is 64.0. All locationX/locationY values are 0 (auto-layout).
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <!-- actionCalls, assignments, decisions, recordCreates, recordLookups, recordUpdates go here -->
+    <apiVersion>64.0</apiVersion>
+    <areMetricsLoggedToDataCloud>false</areMetricsLoggedToDataCloud>
+    <description>...</description>
+    <environments>Default</environments>
+    <interviewLabel>Flow Name {!$Flow.CurrentDateTime}</interviewLabel>
+    <isTemplate>true</isTemplate>
+    <label>Flow Name</label>
+    <processMetadataValues>
+        <name>BuilderType</name>
+        <value><stringValue>LightningFlowBuilder</stringValue></value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>CanvasMode</name>
+        <value><stringValue>AUTO_LAYOUT_CANVAS</stringValue></value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>OriginBuilderType</name>
+        <value><stringValue>LightningFlowBuilder</stringValue></value>
+    </processMetadataValues>
+    <processType>AutoLaunchedFlow</processType>
+    <start>...</start>
+    <status>Draft</status>
+    <!-- variables go here -->
+</Flow>
+```
+
+## Stripe Account Resolution (REQUIRED for every flow)
+
+Every flow that calls a Stripe API must resolve the Stripe Account record. Use the placeholder name `Demo Stripe Account Name` — users replace this before activation.
+
+```xml
+<recordLookups>
+    <name>Get_Stripe_Account</name>
+    <label>Get Stripe Account</label>
+    <locationX>0</locationX>
+    <locationY>0</locationY>
+    <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
+    <connector><targetReference>Check_if_Stripe_Account_Exists</targetReference></connector>
+    <filterLogic>and</filterLogic>
+    <filters>
+        <field>Name</field>
+        <operator>EqualTo</operator>
+        <value><stringValue>Demo Stripe Account Name</stringValue></value>
+    </filters>
+    <getFirstRecordOnly>true</getFirstRecordOnly>
+    <object>stripeGC__Stripe_Account__c</object>
+    <storeOutputAutomatically>true</storeOutputAutomatically>
+</recordLookups>
+```
+
+Always follow with a null-check decision. This two-step pattern (lookup + null-check) is the **required preamble** for every flow that makes Stripe API calls. The full pattern is:
+
+1. **`Get_Stripe_Account`** (recordLookups) — fetch the Stripe Account record
+2. **`Check_if_Stripe_Account_Exists`** (decisions) — null-check with `IsNull = false`
+   - If exists → proceed to the Stripe API call
+   - If not → create a `stripeGC__Sync_Log__c` error record and end
+
+If the flow also needs a Salesforce record (e.g., Account from an Opportunity), add that lookup and its own null-check **before** the Stripe Account preamble. Chain them: `Get_Account` → `Check_if_Account_Exists` → `Get_Stripe_Account` → `Check_if_Stripe_Account_Exists` → API call.
+
+Pass `Get_Stripe_Account.Id` as the `accountRecordId` input parameter to invocable actions.
+
+## Invoking Stripe API Actions
+
+Use `actionCalls` with `actionType=apex` and `actionName=stripeGC__v02_{ActionName}`. Every Stripe callout action MUST include:
+
+1. **`accountRecordId`** (required) — Salesforce record ID of the Stripe Account
+2. **`idempotencyKey`** — use `{!$Flow.InterviewGuid}-{Operation}-{RecordId}` pattern
+3. **`ignoreBillingSyncEventProcessing`** — set to `true` to prevent infinite event loops
+4. **`performDmlSaveAfterCalls`** — `true` for standalone flows, `false` when the flow will make more callouts
+5. **`faultConnector`** — ALWAYS include, targeting an error handler element
+
+```xml
+<actionCalls>
+    <name>Create_Stripe_Customer</name>
+    <label>Create Stripe Customer</label>
+    <locationX>0</locationX>
+    <locationY>0</locationY>
+    <actionName>stripeGC__v02_CreateCustomers</actionName>
+    <actionType>apex</actionType>
+    <connector><targetReference>Next_Element</targetReference></connector>
+    <faultConnector><targetReference>Error_Handler</targetReference></faultConnector>
+    <flowTransactionModel>CurrentTransaction</flowTransactionModel>
+    <inputParameters>
+        <name>accountRecordId</name>
+        <value><elementReference>Get_Stripe_Account.Id</elementReference></value>
+    </inputParameters>
+    <!-- API-specific parameters here -->
+    <nameSegment>stripeGC__v02_CreateCustomers</nameSegment>
+    <offset>0</offset>
+    <storeOutputAutomatically>true</storeOutputAutomatically>
+</actionCalls>
+```
+
+### How to find available parameters
+
+Read the `Params` inner class in the corresponding apiOperations file. Each `@InvocableVariable` is an available input parameter. The `label` annotation tells you the Flow label, `required=true` means it's mandatory.
+
+## Apex Variable Limitation (CRITICAL for source deploy)
+
+Salesforce Flow variables with `dataType=Apex` require the referenced class to have `@InvocableVariable` annotations on its fields. The AutoGen model classes (v02_Address, v02_CreateCheckoutSessionsReqLineItem, etc.) use `@AuraEnabled` only — they CANNOT be used as standalone Flow variables in source-deployed flows.
+
+**What works:** SObject variables (`dataType=SObject`) for Salesforce objects, and primitive types (String, Number, Boolean).
+
+**What fails:** `<apexClass>stripeGC__v02_Address</apexClass>` with `<dataType>Apex</dataType>` — deployment error: "apexClass is invalid".
+
+**Workaround for complex Stripe API inputs** (lists, nested objects like address, lineItems): Create a small Apex `@InvocableMethod` helper class that accepts primitive inputs and constructs the Stripe API objects internally. Use `models-reference.md` to look up the field structure of request models (e.g., `v02_CreatePaymentLinksReqLineItem`, `v02_CreateCheckoutSessionsReqLineItem`) when building helper classes.
+
+**When passing simple parameters** to v02 invocable actions (strings, booleans, numbers), you can pass them directly as `inputParameters` on the `actionCalls` element without needing Apex variables.
+
+## Apex Variable Properties (Dot Notation)
+
+Apex-typed Flow variables support nested property access via dot notation. Proven up to 2 levels deep:
+
+```xml
+<!-- 1 level: StripeAddress.city -->
+<assignToReference>StripeAddress.city</assignToReference>
+
+<!-- 2 levels: StripeShippingAddress.address.line1 -->
+<assignToReference>StripeShippingAddress.address.line1</assignToReference>
+```
+
+To find available properties, read the model class source. Each `@AuraEnabled global` field is accessible. The field name in Apex (camelCase) is used in dot notation.
+
+## Record-Triggered Flows with Stripe Callouts
+
+Stripe API calls require HTTP callouts, which are NOT allowed in the immediate path of a record-triggered flow. Always use the `AsyncAfterCommit` scheduled path:
+
+```xml
+<start>
+    <locationX>0</locationX>
+    <locationY>0</locationY>
+    <doesRequireRecordChangedToMeetCriteria>true</doesRequireRecordChangedToMeetCriteria>
+    <filterLogic>and</filterLogic>
+    <filters>
+        <field>StageName</field>
+        <operator>EqualTo</operator>
+        <value><stringValue>Closed Won</stringValue></value>
+    </filters>
+    <object>Opportunity</object>
+    <recordTriggerType>CreateAndUpdate</recordTriggerType>
+    <scheduledPaths>
+        <connector><targetReference>First_Element_Name</targetReference></connector>
+        <pathType>AsyncAfterCommit</pathType>
+    </scheduledPaths>
+    <triggerType>RecordAfterSave</triggerType>
+</start>
+```
+
+## Error Handling Pattern
+
+Log errors to `stripeGC__Sync_Log__c` with three fields:
+- `stripeGC__Action_Taken__c` — what the flow was trying to do
+- `stripeGC__Error_Details__c` — which record triggered the error
+- `stripeGC__Message__c` — the error message (use `{!$Flow.FaultMessage}` for API failures)
+
+```xml
+<recordCreates>
+    <name>Create_Error_Sync_Log</name>
+    <label>Create Error Sync Log</label>
+    <locationX>0</locationX>
+    <locationY>0</locationY>
+    <inputAssignments>
+        <field>stripeGC__Action_Taken__c</field>
+        <value><stringValue>Failed Creating Stripe Customer</stringValue></value>
+    </inputAssignments>
+    <inputAssignments>
+        <field>stripeGC__Error_Details__c</field>
+        <value><stringValue>Record {!$Record.Name} ({!$Record.Id})</stringValue></value>
+    </inputAssignments>
+    <inputAssignments>
+        <field>stripeGC__Message__c</field>
+        <value><elementReference>$Flow.FaultMessage</elementReference></value>
+    </inputAssignments>
+    <object>stripeGC__Sync_Log__c</object>
+    <storeOutputAutomatically>true</storeOutputAutomatically>
+</recordCreates>
+```
+
+## Key Stripe Custom Objects
+
+| Object API Name | Purpose | Key Fields |
+|---|---|---|
+| `stripeGC__Stripe_Account__c` | Configured Stripe account | `stripeGC__Stripe_Account_Id__c`, `Name` |
+| `stripeGC__Stripe_Connected_Account__c` | Stripe Connect sub-account | `stripeGC__Stripe_Account_Id__c` |
+| `stripeGC__Customer__c` | Stripe Customer mirror | `stripeGC__Stripe_Id__c`, `stripeGC__Account__c`, `stripeGC__Full_Name__c`, `stripeGC__Email__c` |
+| `stripeGC__Invoice__c` | Stripe Invoice mirror | `stripeGC__Stripe_Id__c`, `stripeGC__Customer__c` |
+| `stripeGC__Product__c` | Stripe Product mirror | `stripeGC__Stripe_Id__c` |
+| `stripeGC__Price__c` | Stripe Price mirror | `stripeGC__Stripe_Id__c`, `stripeGC__Product__c` |
+| `stripeGC__Subscription__c` | Stripe Subscription mirror | `stripeGC__Stripe_Id__c`, `stripeGC__Customer__c` |
+| `stripeGC__Sync_Log__c` | Error/event log | `stripeGC__Action_Taken__c`, `stripeGC__Message__c`, `stripeGC__Error_Details__c` |
+
+Standard object extensions: `Account.stripeGC__Customer_Id__c`, `Account.stripeGC__Customer__c` (lookup to Customer__c).
+
+## Calling Stripe APIs: Decision Framework
+
+You have **three approaches** for calling Stripe APIs from Flows. Choose based on availability, complexity, and reusability:
+
+### 1. Direct v02_* Invocable (Default choice)
+
+**When:** Stripe API endpoint exists in the 241 v02_* invocable actions
+
+**How to find:** Search `invocable-actions-reference.md` by keyword or Stripe resource name
+- Need Payment Links? → Search for "PaymentLink" → find `v02_CreatePaymentLinks`
+- Need Refunds? → Search for "Refund" → find `v02_CreateRefunds`, `v02_GetRefunds`
+- Need SetupIntents? → Search for "SetupIntent" → find `v02_CreateSetupIntents`, `v02_PostSetupIntentsConfirm`
+
+**Never assume an action doesn't exist** — always search the reference files first.
+
+**Construction:**
+- **Simple parameters** (strings, numbers, booleans): Pass directly as `<inputParameters>`
+- **Complex objects** (address, lineItems): Use Apex variables with `<dataType>Apex</dataType>`, look up field structure in `models-reference.md`
+
+**Example (simple):**
+```xml
+<actionName>stripeGC__v02_CreateCustomers</actionName>
+<inputParameters>
+    <name>name</name>
+    <value><stringValue>Rocket Rides</stringValue></value>
+</inputParameters>
+```
+
+**Example (complex with Apex variable):**
+```xml
+<!-- Variable definition -->
+<variables>
+    <name>StripeAddress</name>
+    <apexClass>stripeGC__v02_Address</apexClass>
+    <dataType>Apex</dataType>
+</variables>
+
+<!-- Assignment -->
+<assignments>
+    <assignToReference>StripeAddress.city</assignToReference>
+    <value><stringValue>San Francisco</stringValue></value>
+</assignments>
+
+<!-- Usage -->
+<actionName>stripeGC__v02_CreateCustomers</actionName>
+<inputParameters>
+    <name>address</name>
+    <value><elementReference>StripeAddress</elementReference></value>
+</inputParameters>
+```
+
+See `stripe-billing-salesforce-flows` for 14 production examples using this pattern.
+
+### 2. AgnosticInvocable (For any endpoint)
+
+**When:**
+- Stripe API endpoint NOT available in v02_* actions (new endpoints, beta features)
+- Need a different API version than the default 2025-04-30
+- Custom/internal Stripe endpoints
+
+**Flow Builder label:** "Call a Stripe API Endpoint"
+
+**Advantages:** Still benefits from connector auth, webhook ingestion, sync logs, and API transaction tracking
+
+**Parameters:**
+```xml
+<actionName>stripeGC__AgnosticInvocable</actionName>
+<inputParameters>
+    <name>endpoint</name>
+    <value><stringValue>/v1/payment_links</stringValue></value>
+</inputParameters>
+<inputParameters>
+    <name>method</name>
+    <value><stringValue>POST</stringValue></value>
+</inputParameters>
+<inputParameters>
+    <name>accountId</name>
+    <value><elementReference>Get_Stripe_Account.Id</elementReference></value>
+</inputParameters>
+<inputParameters>
+    <name>requestBody</name>
+    <value><stringValue>line_items[0][price]=price_1234&line_items[0][quantity]=1</stringValue></value>
+</inputParameters>
+<inputParameters>
+    <name>apiVersion</name>
+    <value><stringValue>2025-04-30</stringValue></value>
+</inputParameters>
+```
+
+**Request body format:** URL-encoded form data (e.g., `name=value&param[0][field]=value`), not JSON
+
+See `Stripe-Salesforce-Platform-Architecture.md` for complete AgnosticInvocable documentation.
+
+### 3. Helper Invocable Class (For repeated/complex patterns)
+
+**When:**
+- Repeated pattern across multiple flows (e.g., "create customer from account" used in 5 flows)
+- Org-specific business logic (validation, defaults, field mapping)
+- Simplified interface for non-technical admins
+- Complex nested object construction that's too verbose in Flow XML
+
+**How to build:**
+1. Create Apex class with `@InvocableMethod`
+2. Define Input class with `@InvocableVariable` primitives (String, Integer, Boolean)
+3. Internally construct v02_* model objects using `models-reference.md` for field structures
+4. Call v02_* invocable action with constructed objects
+5. Define Output class with `@InvocableVariable` results
+
+**Example:**
+```apex
+public class CreatePaymentLinkAction {
+    public class Input {
+        @InvocableVariable(required=true)
+        public String accountRecordId;
+        @InvocableVariable(required=true)
+        public String priceId;
+        @InvocableVariable(required=true)
+        public Integer quantity;
+    }
+
+    @InvocableMethod(label='Create Payment Link' callout=true)
+    public static List<Output> createPaymentLink(List<Input> inputs) {
+        // Construct v02_CreatePaymentLinksReqLineItem using models-reference.md
+        stripeGC.v02_CreatePaymentLinksReqLineItem lineItem = new stripeGC.v02_CreatePaymentLinksReqLineItem();
+        lineItem.price = inputs[0].priceId;
+        lineItem.quantity = inputs[0].quantity;
+
+        // Call v02_CreatePaymentLinks
+        stripeGC.v02_CreatePaymentLinks.Params params = new stripeGC.v02_CreatePaymentLinks.Params();
+        params.accountRecordId = inputs[0].accountRecordId;
+        params.lineItems = new List<stripeGC.v02_CreatePaymentLinksReqLineItem>{ lineItem };
+
+        // ... call and return
+    }
+}
+```
+
+See `stripe-flow-recipes/force-app/main/default/classes/CreateCheckoutSessionAction.cls` for a complete working example.
+
+## Commonly Used Invocable Actions (Quick Reference)
+
+| Action | Class | Input Highlights | Returns |
+|---|---|---|---|
+| Create Customer | `v02_CreateCustomers` | name, email, phone, address (v02_Address), metadata (v02_Metadata) | v02_Customer |
+| Get Customer | `v02_GetCustomers` | id (Stripe customer ID) | v02_Customer |
+| Create Checkout Session | `v02_CreateCheckoutSessions` | mode, lineItems (List), successUrl, cancelUrl, customer | v02_CheckoutSession |
+| Create Invoice | `v02_CreateInvoices` | customer, currency, metadata | v02_Invoice |
+| Create Invoice Item | `v02_CreateInvoiceitems` | customer, invoice, amount, currency, description | v02_Invoiceitem |
+| Finalize Invoice | `v02_PostInvoicesFinalize` | id (invoice ID) | v02_Invoice |
+| Create Subscription | `v02_CreateSubscriptions` | customer, items (List) | v02_Subscription |
+| Create Product | `v02_CreateProducts` | name, description, active | v02_Product |
+| Create Price | `v02_CreatePrices` | product, currency, unitAmount | v02_Price |
+| Create Payment Intent | `v02_CreatePaymentIntents` | amount, currency, customer | v02_PaymentIntent |
+
+## Flow Naming Convention
+
+- File: `{Action}_{StripeObject}_from_{SalesforceObject}.flow-meta.xml`
+- Label: `{Action} {Stripe Object} from {Salesforce Object}`
+- Examples: `Create_Stripe_Customer_from_Opportunity`, `Create_Checkout_Session_from_Opportunity`
+
+## Pre-activation Checklist
+
+Before activating a generated flow:
+1. Replace `Demo Stripe Account Name` with the actual Stripe Account Name from Setup > Stripe > Accounts
+2. Replace any placeholder URLs (success_url, cancel_url) with real endpoints
+3. Verify all referenced custom fields exist in the target org (they should if the connector packages are installed)
+4. Deploy in Draft status first, test manually, then set status to Active
+
+## Deployment
+
+```bash
+sf project deploy start --source-dir force-app -o <your-org-alias>
+```

@@ -1,0 +1,13 @@
+.stripe-element-container {
+    border: 1px solid #d8dde6;
+    border-radius: 8px;
+    padding: 16px;
+    background-color: #ffffff;
+    min-height: 120px;
+}
+
+.amount-display {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #181818;
+}

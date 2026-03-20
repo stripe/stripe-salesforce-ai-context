@@ -1,0 +1,24 @@
+{
+  "packageDirectories": [
+    {
+      "path": "force-app",
+      "default": true,
+      "dependencies": [
+        {
+          "package": "Stripe Universal Connector@2.0.0-1"
+        },
+        {
+          "package": "Stripe Universal Connector Extension (2025-04-30)@0.1.0-1"
+        }
+      ]
+    }
+  ],
+  "name": "stripe-salesforce-examples",
+  "namespace": "",
+  "sfdcLoginUrl": "https://login.salesforce.com",
+  "sourceApiVersion": "64.0",
+  "packageAliases": {
+    "Stripe Universal Connector@2.0.0-1": "04tRN000006ESXFYA4",
+    "Stripe Universal Connector Extension (2025-04-30)@0.1.0-1": "04tRN000006ESc5YAG"
+  }
+}
