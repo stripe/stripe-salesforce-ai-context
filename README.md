@@ -1,6 +1,6 @@
 # Stripe App for Salesforce + AI Coding Tools
 
-**Build Stripe-Salesforce automations faster with AI coding tools. AI-native context files that stop the hallucinations.**
+**Build Stripe-Salesforce automations faster with AI coding tools. AI-native context files that reduce the hallucinations.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](#contributing)
