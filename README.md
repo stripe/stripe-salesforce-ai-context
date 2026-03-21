@@ -246,6 +246,9 @@ Using the API-Extension.md context, create an Apex invocable action that:
 
 ### Before Generating Code
 
+**📚 Foundation First:**
+While AI tools accelerate development, foundational knowledge of Stripe API and Salesforce administration is highly recommended. These context files enhance AI accuracy—they don't replace understanding the platforms you're integrating.
+
 1. **Verify prerequisites** — ensure your org has Stripe packages installed
 2. **Review context files** — understand the patterns before prompting
 3. **Start simple** — generate read-only queries first, then write operations
