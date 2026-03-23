@@ -36,7 +36,7 @@ Gateway status mapping uses `GatewayStatusMapping__mdt` custom metadata to map S
 |-------|---------|
 | `StripeBillingUtils` | Gateway validation, customer creation, currency validation, PaymentIntent/SetupIntent operations, refunds |
 | `StripeBilling` | Additional billing utilities |
-| `StripeBillingConstants` | Constants: gateway type (`Stripe (Universal Extension)`), payment types (Credit Card, ACH) |
+| `StripeBillingConstants` | Constants: gateway type (`Stripe (Universal Extension)`), payment types (Credit Card, ACH), Stripe API base URI |
 | `BlngPaymentMethodTriggerHelper` | Trigger handler for `blng__PaymentMethod__c` events |
 | `NewACHPaymentMethodController` | Visualforce/Lightning controller for ACH payment method creation |
 | `VerifyACHPaymentMethodController` | Visualforce/Lightning controller for ACH micro-deposit verification |
@@ -66,5 +66,6 @@ Gateway status mapping uses `GatewayStatusMapping__mdt` custom metadata to map S
 
 - Permission set: `Stripe_Connector_Billing_User`
 - The gateway type is configured as `Stripe (Universal Extension)` in Salesforce Billing gateway settings
+- Stripe API calls are made directly to `https://api.stripe.com/v1` (not through the AWS middleware)
 - Uses `Stripe_Customer_Id__c` field on the standard `Account` object to link SF Accounts to Stripe Customers
 - Uses `Stripe_Setup_Intent_Id__c` on payment method records
