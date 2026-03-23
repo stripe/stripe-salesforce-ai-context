@@ -121,7 +121,7 @@ sf project deploy start -d force-app/main/default/lwc -o your-org-alias        #
 ```
 
 **Prerequisites:**
-- Stripe Universal Connector (v2.7.0+) installed in target org
+- Stripe Universal Connector (v2.x.x) installed in target org
 - Stripe Universal Connector Extension (2025-04-30) installed in target org
 
 ### Generate Your Own

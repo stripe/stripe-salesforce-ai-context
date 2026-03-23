@@ -115,6 +115,11 @@ public with sharing class StripePaymentController {
         return config;
     }
 
+    // DEMO: This method confirms the PaymentIntent server-side to avoid LWS 3DS issues.
+    // Reconciliation (verifying amount, currency, metadata match the Opportunity) is handled
+    // by the webhook trigger on stripeGC__Stripe_Event__c, which reads metadata[opportunity_id]
+    // from the raw event payload. See Stripe-Salesforce-Platform-Architecture.md for the
+    // webhook-based state management pattern.
     @AuraEnabled
     public static ConfirmationResult confirmPaymentServerSide(
         Id opportunityId,

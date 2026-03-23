@@ -112,56 +112,74 @@ disconnectedCallback() {
 
 ---
 
-### Payment Confirmation
+### Payment Confirmation (Server-Side)
 
-Use `redirect: 'if_required'` to handle 3D Secure / SCA without forcing a page redirect:
+Use **server-side confirmation** to avoid LWS issues with 3D Secure. The LWC creates a payment method client-side, then confirms server-side via Apex:
 
+**Step 1 — Create payment method** (client-side, no DOM injection):
 ```javascript
-const { error, paymentIntent } = await this.stripe.confirmPayment({
+const { error: pmError, paymentMethod } = await this.stripe.createPaymentMethod({
     elements: this.elements,
-    confirmParams: { return_url: window.location.href },
-    redirect: 'if_required'
+    params: {
+        billing_details: this.customerEmail ? { email: this.customerEmail } : {}
+    }
 });
 ```
 
-After confirmation, `paymentIntent` contains:
-- `paymentIntent.id` — the `pi_xxx` PaymentIntent ID
-- `paymentIntent.latest_charge` — the `ch_xxx` Charge ID (available after `succeeded`)
-- `paymentIntent.status` — `succeeded`, `requires_action`, or another terminal state
+**Step 2 — Confirm server-side** via Apex controller:
+```javascript
+const result = await confirmPaymentServerSide({
+    opportunityId: this.recordId,
+    paymentIntentId: this.paymentIntentId,
+    paymentMethodId: paymentMethod.id,
+    returnUrl: window.location.href
+});
+```
 
-Always handle all three status branches: `succeeded`, `requires_action` (3DS), and fallback error.
+**Step 3 — Handle response** (3DS redirect or success):
+```javascript
+if (result.redirectUrl) {
+    // 3DS required — plain redirect, no LWS violation
+    window.location.href = result.redirectUrl;
+} else if (result.success) {
+    // Payment succeeded — show success UI, webhook updates Opportunity
+    this.paymentSuccess = true;
+    this._pollForPaymentUpdate();
+} else {
+    this.errorMessage = result.errorMessage || 'Payment failed.';
+}
+```
 
-Client-side `paymentIntent.status === 'succeeded'` is **not** enough to mark the Salesforce record as paid. Treat the browser result as a UX signal only. Before setting any "captured", "paid", or reconciliation fields in Salesforce, make a server-side verification call to Stripe using the Universal Connector and confirm:
-
-- the PaymentIntent still has `status = succeeded`
-- the PaymentIntent metadata maps back to the expected Salesforce record
-- the amount and currency still match the Salesforce-side expectation
-- the charge or payment intent has not already been linked to a different Salesforce record
+**Why server-side?** LWS blocks `stripe.confirmPayment()` from injecting 3DS modals (`"Cannot insert child DIV into BODY"` error). `stripe.createPaymentMethod()` only tokenizes card data (no DOM injection). Server-side confirmation happens entirely in Apex. Plain JavaScript redirect has no LWS restrictions.
 
 ---
 
-### Post-Payment: Writing Back to Salesforce
+### Post-Payment: Webhook-Driven State Management
 
-Call a separate `@AuraEnabled` Apex method after confirmation — never block the success UI waiting for DML. Use fire-and-forget:
+**Do NOT** update Salesforce records from the LWC after payment. Instead, rely on **webhooks** for all record updates:
 
-```javascript
-recordPaymentSuccess({
-    recordId: this.recordId,
-    paymentIntentId: paymentIntent.id,
-    chargeId: paymentIntent.latest_charge || ''
-}).then(() => {
-    getRecordNotifyChange([{ recordId: this.recordId }]);
-}).catch(err => console.error(err));
-```
+1. **PaymentIntent metadata** carries the Salesforce record ID (set during `createPaymentIntent`):
+   ```apex
+   metadata.listAdditionalStringField = new List<stripeGC.v02_AdditionalString>{
+       new stripeGC.v02_AdditionalString('opportunity_id', opportunityId)
+   };
+   ```
 
-Use `getRecordNotifyChange` (not `refreshApex`) to push the wire refresh to all components watching the record after the DML update.
+2. **Webhook trigger** on `stripeGC__Stripe_Event__c` parses `payment_intent.succeeded` events and reads the `opportunity_id` from raw webhook JSON (`stripeGC__Request_Body__c` field — metadata is NOT on the data model)
 
-If you write back to Salesforce after payment, prefer one of these patterns:
+3. **Flow or trigger** updates `Payment_Captured__c` and `Stripe_Payment_ID__c` on the Opportunity
 
-1. **Best**: fetch the PaymentIntent server-side and verify status, metadata, amount, and currency before updating any record fields
-2. **Acceptable for demos only**: clearly document that the component trusts the client-confirmed result and is not a production-grade payment reconciliation path
+4. **LWC polls** for the wire update after showing success UI:
+   ```javascript
+   _pollForPaymentUpdate() {
+       const pollInterval = setInterval(() => {
+           getRecordNotifyChange([{ recordId: this.recordId }]);
+       }, 2000);
+       setTimeout(() => clearInterval(pollInterval), 10000);
+   }
+   ```
 
-Never blindly trust `paymentIntent.id` or `latest_charge` values supplied by the browser when updating business-critical fields.
+**Why webhooks?** Works for all payment methods (card, 3DS, SEPA, ACH). No dependency on fragile client-side return detection. Single source of truth for payment state. Handles async payment methods that settle hours/days later. The `opportunity_id` in metadata enables server-side reconciliation without trusting browser-supplied values.
 
 **Idempotency state**: Wire a "payment captured" boolean field from the record. Gate your initial UI state on it so the Pay Now button never re-appears on a previously paid record — this works retroactively for all existing records with the field already set:
 
@@ -283,8 +301,8 @@ Reference implementation of a Payment Element embedded on the Opportunity record
 | File | Purpose |
 |---|---|
 | `force-app/main/default/lwc/stripePayment/` | The LWC (JS, HTML, CSS, meta.xml) |
-| `force-app/main/default/classes/StripePaymentController.cls` | Apex — createPaymentIntent, recordPaymentSuccess |
-| `force-app/main/default/classes/ChargeOpportunityLinkerQueueable.cls` | Retry Queueable for Charge → Opportunity linking |
+| `force-app/main/default/classes/StripePaymentController.cls` | Apex — createPaymentIntent, confirmPaymentServerSide |
+| `force-app/main/default/classes/ChargeOpportunityLinkerQueueable.cls` | Retry Queueable for Charge → Opportunity linking (used by webhook Flow) |
 
 ---
 
@@ -310,17 +328,22 @@ Opportunity (Closed Won) — record page loads
               │  Returns { publishableKey, clientSecret, amount, customerEmail }
               │
               ▼
-       LWC mounts Payment Element (renderedCallback)
+       LWC mounts Payment Element (renderedCallback, paymentMethodCreation: 'manual')
               │
               ▼  user completes payment
-       stripe.confirmPayment() → paymentIntent.status = 'succeeded'
+       stripe.createPaymentMethod() → paymentMethod.id (client-side, no DOM injection)
               │
-              ├─ Show success UI immediately
+              ▼
+       confirmPaymentServerSide(opportunityId, pi_xxx, pm_xxx, returnUrl)
+              │  Calls v02_PostPaymentIntentsConfirm server-side
               │
-              └─ Fire-and-forget: recordPaymentSuccess(opportunityId, pi_xxx, ch_xxx)
-                     │  UPDATE Opportunity: Payment_Captured__c=true, Stripe_Payment_ID__c=pi_xxx
-                     │  Try sync Charge link → if not found: enqueue ChargeOpportunityLinkerQueueable
-                     └─ getRecordNotifyChange → wire refreshes, button stays hidden
+              ├─ 3DS required → result.redirectUrl → window.location.href (plain redirect)
+              │     └─ After 3DS: webhook updates Opportunity via metadata[opportunity_id]
+              │
+              └─ Payment succeeded → show success UI + poll for wire updates
+                     └─ Webhook: payment_intent.succeeded → reads metadata[opportunity_id]
+                            → Flow/trigger updates Payment_Captured__c + Stripe_Payment_ID__c
+                            → getRecordNotifyChange → wire refreshes, button stays hidden
 ```
 
 ---

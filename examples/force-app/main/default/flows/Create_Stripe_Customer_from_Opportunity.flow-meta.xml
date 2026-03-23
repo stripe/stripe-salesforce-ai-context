@@ -26,6 +26,9 @@
                 <elementReference>Get_Account.Description</elementReference>
             </value>
         </inputParameters>
+        <!-- DEMO: Account.Website used as email placeholder. Stripe has no Account object,
+             so no direct email field exists on SF Account. In production, replace with
+             Contact email (e.g., OpportunityContactRole Contact.Email) -->
         <inputParameters>
             <name>email</name>
             <value>
@@ -211,7 +214,7 @@
             <label>Stripe Account Exists</label>
         </rules>
     </decisions>
-    <description>When an Opportunity is set to Closed Won, create a Stripe Customer from the related Account. Maps Account name, phone, website (as email for testing), and description to the Stripe Customer. Creates a stripeGC__Customer__c record and links it to the Account.</description>
+    <description>DEMO FLOW: When an Opportunity is set to Closed Won, create a Stripe Customer from the related Account. Maps Account name, phone, and description to the Stripe Customer. NOTE: Email is mapped from Account.Website as a demo placeholder — Stripe does not have an Account object, so there is no direct email field on SF Account to sync. In production, replace with a Contact email lookup (e.g., primary OpportunityContactRole Contact.Email). Creates a stripeGC__Customer__c record and links it to the Account.</description>
     <environments>Default</environments>
     <interviewLabel>Create Stripe Customer from Opportunity {!$Flow.CurrentDateTime}</interviewLabel>
     <isTemplate>true</isTemplate>
