@@ -9,11 +9,11 @@ This is the **main managed Salesforce package** for Stripe (namespace: `stripeGC
 ### Package Hierarchy
 
 ```
-Stripe Universal Connector (managed package, v2.7.0)
-├── salesforce-connector-AutoGen (Stripe API invocable actions)
-│   └── stripe-billing-salesforce-flows (subscription schedule automation)
-├── stripe-flow-recipes/ (AI-generated Flow examples — see rules/flow-builder.mdc)
-└── stripe-checkout-lwc/ (LWC + Stripe Payment Element — see rules/lwc-stripe-payment.mdc)
+Stripe Universal Connector (managed package)
+├── AutoGen Extension (Stripe API invocable actions — see API-Extension.md)
+│   └── Billing Flows Extension (subscription schedule automation — see Stripe-Billing-Flows.md)
+├── Flow examples (see rules/flow-builder.mdc and examples/)
+└── LWC examples (see rules/lwc-stripe-payment.mdc and examples/)
 ```
 
 All Salesforce packages share the `stripeGC` namespace. Extensions are unmanaged packages that depend on the base managed package.
@@ -181,7 +181,7 @@ Use `EncodingUtil.urlEncode()` in Apex to build complex request bodies programma
 5. Define Output class with `@InvocableVariable` results
 
 **Example:**
-See `stripe-flow-recipes/force-app/main/default/classes/CreateCheckoutSessionAction.cls` for a complete working example.
+See `examples/force-app/main/default/classes/CreateCheckoutSessionAction.cls` for a complete working example.
 
 ## Decision Framework: Which Approach to Use?
 
@@ -238,7 +238,7 @@ See `stripe-flow-recipes/force-app/main/default/classes/CreateCheckoutSessionAct
 - Namespace: `stripeGC` (all Apex references across extensions use this namespace)
 - Post-install script: `StripeInstallHandler`
 - Permission sets: `Global_Connector_Integration_User` (main app), `Stripe_Connector_Billing_User` (billing extension)
-- Examples and demos: see sibling repo `salesforce-connector-examples/`
+- Examples and demos: see `examples/` directory
 
 ## Local Development Setup
 
@@ -257,7 +257,7 @@ See `stripe-flow-recipes/force-app/main/default/classes/CreateCheckoutSessionAct
 
 ## Context for Building Flows
 
-Validated flow recipes live in the sibling project `stripe-flow-recipes/`. See `rules/flow-builder.mdc` for detailed generation rules.
+See `rules/flow-builder.mdc` for detailed Flow generation rules and `examples/` for working Flow examples.
 
 Key learnings:
 - AutoGen model classes (v02_Address, etc.) use `@AuraEnabled` only — they cannot be used as Flow Apex variables in source deployments. Use Apex helper classes for complex inputs.
@@ -279,7 +279,7 @@ Rules:
 
 ## Context for Building LWC with Stripe Payment Element
 
-A validated LWC + Stripe Payment Element integration lives in the sibling project `stripe-checkout-lwc/`. See `rules/lwc-stripe-payment.mdc` for detailed patterns.
+See `rules/lwc-stripe-payment.mdc` for detailed LWC patterns and `examples/` for a working Payment Element reference implementation.
 
 Key learnings:
 - CSP Trusted Sites must have ALL directive checkboxes checked (especially `frame-src` for Payment Element iframes) — configure via Setup UI, not metadata deployment.

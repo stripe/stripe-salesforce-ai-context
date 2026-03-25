@@ -35,34 +35,27 @@ This repo provides **AI-native context files** that teach AI tools the Stripe Ap
 
 ---
 
-## 🔌 Wake Word - Load All Context
+## Get Started — Load Context
 
-**One command loads everything:**
+Open your AI coding tool in this repo's directory and prompt:
 
-**Claude Code:**
-```
-Read context/LOAD_ALL.md
-```
+> **Read all files in context/ and become my Stripe-Salesforce integration expert. When ready, tell me what you loaded.**
 
-**Codex / Cursor / Cody:**
-```
-@context/LOAD_ALL.md
-```
+This works with any AI coding tool — Claude Code, Cursor, Codex, Copilot, Aider, Cody. No tool-specific syntax needed.
 
-**Aider:**
-```bash
-aider --read context/LOAD_ALL.md
-```
+The AI will read all context files and confirm what it loaded. Then prompt with your task:
 
-**GitHub Copilot / Gemini / ChatGPT:**
-Copy-paste the content from `prompts/load-stripe-context.txt` into your AI tool.
-
-The AI will automatically load all 7 context files and respond: **"I know Stripe for Salesforce 😎"**
-
-Now prompt naturally:
+**Good — gets you a starting point:**
 - "Generate a Flow that creates a Stripe Customer when Opportunity closes"
-- "Build an LWC with Payment Element for the Order page"
-- "Create an Apex invocable that handles subscription cancellation"
+- "Build an LWC with Payment Element on the Opportunity page"
+- "Create an Apex invocable that cancels a subscription"
+
+**Better — specific requirements mean fewer iterations:**
+- "Generate a record-triggered Flow on Opportunity. When StageName changes to Closed Won, look up the related Account, create a Stripe Customer using v02_CreateCustomers (map Account.Name, Account.Phone, and primary Contact email), and store the Stripe Customer ID on Account.stripeGC__Customer_Id__c. Include error handling with Sync_Log__c."
+- "Build an LWC for the Opportunity record page that shows a Pay Now button when StageName = Closed Won and Payment_Captured__c = false. Use server-side confirmation with v02_PostPaymentIntentsConfirm. After payment, rely on webhooks to update the Opportunity — don't write back from the client."
+- "Create an @InvocableMethod Apex class that accepts a Stripe subscription schedule ID and cancels it using v02_UpdateSubscriptionSchedules with end_behavior=cancel. Return the schedule status."
+
+The more specific you are about trigger conditions, field mappings, and expected behavior, the fewer iterations you'll need.
 
 ---
 
@@ -87,8 +80,8 @@ With AI tools + these context files, you can generate:
 
 **Required:**
 - Salesforce org (Enterprise Edition or higher recommended)
-- [Stripe Universal Connector](https://appexchange.salesforce.com/appxListingDetail?listingId=a0N3A00000EcrOnUAJ) v2.7.0+ (managed package)
-- [Stripe API Extension] 2025-04-30 version (extension package)
+- [Stripe Universal Connector](https://appexchange.salesforce.com/appxListingDetail?listingId=4dff0f8e-0b10-47c2-a3a3-f3905e7f7927) v2.x.x (managed package)
+- Stripe API Extension (2025-04-30 version, extension package)
 - AI coding tool: Claude Code or Cursor or GitHub Copilot
 - [Salesforce CLI](https://developer.salesforce.com/tools/sfdxcli) (`sf` command)
 
@@ -101,7 +94,7 @@ See [full installation guide](#prerequisites-detailed-setup) below for step-by-s
 cp -r context /path/to/your/salesforce-project/
 ```
 
-Alternatively, keep context files in this repo and reference them directly using the wake word (see above).
+Alternatively, keep context files in this repo and open your AI tool from this directory.
 
 ### 3. Generate Your First Flow
 
@@ -121,29 +114,31 @@ The AI will generate working Flow XML. Review it, deploy to a sandbox, and test.
 ## Repository Structure
 
 ```
-stripe-salesforce-ai-grounding/
-├── README.md                       # This file
-├── LICENSE                         # MIT License
+stripe-salesforce-ai-context/
+├── README.md
+├── LICENSE
 │
-├── context/                        # AI-native context files
-│   ├── LOAD_ALL.md                 # Master context loader (wake word)
+├── context/                                        # AI-native context files
+│   ├── LOAD_ALL.md                                 # Context index
 │   ├── Stripe-Salesforce-Platform-Architecture.md  # Universal Connector architecture
-│   ├── API-Extension.md            # AutoGen invocables reference
-│   ├── Stripe-Billing-Flows.md     # Stripe Billing flows
-│   ├── invocable-actions-reference.md  # Auto-generated API reference
-│   ├── models-reference.md         # Auto-generated model reference
+│   ├── API-Extension.md                            # AutoGen invocables & models
+│   ├── Stripe-Billing-Flows.md                     # Subscription schedule automation
+│   ├── Stripe-Payments-Salesforce-Billing.md       # Legacy SF Billing (optional)
+│   ├── invocable-actions-reference.md              # 241 v02_* actions catalog
+│   ├── models-reference.md                         # 2,175 request/response models
 │   └── rules/
-│       ├── flow-builder.mdc        # Flow generation rules
-│       └── lwc-stripe-payment.mdc  # LWC + Stripe.js patterns
+│       ├── flow-builder.mdc                        # Flow XML generation rules
+│       └── lwc-stripe-payment.mdc                  # LWC + Payment Element patterns
 │
-├── prompts/                        # Copy-paste prompts
-│   └── load-stripe-context.txt     # Universal context loader prompt
+├── prompts/                                        # Copy-paste prompts
+│   └── load-stripe-context.txt                     # For tools without file access
 │
-│
-└── examples/                       # Working code examples (3 Flows, 1 LWC, 3 Apex)
-    ├── flows/                      # 3 validated Flow examples
-    ├── lwc/                        # Payment Element LWC
-    └── apex/                       # 3 Apex classes (controller + invocable + queueable)
+└── examples/                                       # Working reference code
+    ├── sfdx-project.json                           # Package dependencies
+    └── force-app/main/default/
+        ├── flows/                                  # 3 validated Flow examples
+        ├── classes/                                # 3 Apex classes
+        └── lwc/stripePayment/                      # Payment Element LWC
 ```
 
 ---
@@ -529,6 +524,65 @@ This project is not affiliated with or endorsed by Stripe, Inc. or Salesforce, I
 
 ---
 
+## Companion Tools: MCP Servers
+
+This repo provides AI-native *context* (what to generate). Pair it with MCP servers to let your AI tool *interact* with both Stripe and Salesforce directly.
+
+### Salesforce MCP Server (official, beta)
+
+The **Salesforce DX MCP Server** ([`@salesforce/mcp`](https://github.com/salesforcecli/mcp)) lets AI tools interact with your Salesforce org:
+- Execute SOQL queries to verify fields and objects exist
+- Deploy generated Flows, Apex, and LWC metadata directly
+- Run Apex tests after deployment
+- Static code analysis via Salesforce Code Analyzer
+- Generate and run Jest tests for LWC components
+
+```json
+{
+  "mcpServers": {
+    "salesforce": {
+      "command": "npx",
+      "args": ["-y", "@salesforce/mcp"],
+      "env": { "SF_ORG": "your-org-alias" }
+    }
+  }
+}
+```
+
+### Stripe MCP Server (official)
+
+The **Stripe MCP Server** ([`@stripe/mcp`](https://github.com/stripe/agent-toolkit)) lets AI tools interact with Stripe APIs:
+- Create and list customers, products, prices, subscriptions
+- Create payment intents, invoices, payment links
+- Search Stripe resources and documentation
+- Manage refunds, disputes, coupons
+
+```json
+{
+  "mcpServers": {
+    "stripe": {
+      "command": "npx",
+      "args": ["-y", "@stripe/mcp", "--api-key=YOUR_STRIPE_RESTRICTED_KEY"]
+    }
+  }
+}
+```
+
+Use a [Restricted API Key](https://dashboard.stripe.com/apikeys) with only the permissions your workflow needs. Stripe also hosts a remote MCP server at `https://mcp.stripe.com` with OAuth-based access.
+
+### Combined Workflow
+
+With both MCP servers + this repo's context files, your AI tool can:
+1. **Read** our context files to understand the Stripe App for Salesforce surface
+2. **Query** your Salesforce org to verify fields, objects, and package installation
+3. **Generate** correct Flow XML, Apex, or LWC using the grounding context
+4. **Deploy** directly to a scratch org via Salesforce MCP
+5. **Verify** the Stripe side (create test customers, check webhook config) via Stripe MCP
+
+See [Salesforce MCP docs](https://github.com/salesforcecli/mcp) and [Stripe MCP docs](https://docs.stripe.com/mcp) for full setup.
+
+---
+
 ## Additional Resources
 
 - [Stripe App for Salesforce Documentation](https://docs.stripe.com/use-stripe-apps/stripe-app-for-salesforce/overview)
@@ -536,6 +590,8 @@ This project is not affiliated with or endorsed by Stripe, Inc. or Salesforce, I
 - [Stripe API Documentation](https://stripe.com/docs/api)
 - [Salesforce Flow Builder Documentation](https://help.salesforce.com/s/articleView?id=sf.flow.htm)
 - [Stripe.js Reference](https://stripe.com/docs/js)
+- [Salesforce DX MCP Server](https://github.com/salesforcecli/mcp) — Official MCP server for Salesforce org interaction (beta)
+- [Stripe MCP Server](https://github.com/stripe/agent-toolkit) — Official MCP server for Stripe API interaction
 
 ---
 

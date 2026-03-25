@@ -29,7 +29,7 @@ This is an **unmanaged Salesforce extension** (namespace: `stripeGC`) that provi
 **Use Helper Invocable Classes if:**
 - You have repeated patterns across multiple flows (e.g., "create customer from account")
 - You need org-specific business logic or simplified interfaces for admins
-- Complex nested object construction that's cleaner in Apex (see `stripe-flow-recipes/` for examples)
+- Complex nested object construction that's cleaner in Apex (see `examples/` for working examples)
 
 ## Relationship to Other Packages
 

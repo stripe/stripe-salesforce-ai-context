@@ -21,7 +21,7 @@ After reading all files above, respond with:
 "🔌 CONTEXT LOADED
 
 I now have complete knowledge of:
-✓ Stripe Universal Connector (v2.7.0) architecture
+✓ Stripe Universal Connector (v2.x.x) architecture
 ✓ 241 v02_* invocable actions for Stripe API operations
 ✓ Flow Builder patterns (AsyncAfterCommit, connector integrity, idempotency)
 ✓ LWC + Payment Element patterns (Shadow DOM, CSP, 3DS + LWS)

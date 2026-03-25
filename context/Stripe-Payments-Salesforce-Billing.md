@@ -66,6 +66,6 @@ Gateway status mapping uses `GatewayStatusMapping__mdt` custom metadata to map S
 
 - Permission set: `Stripe_Connector_Billing_User`
 - The gateway type is configured as `Stripe (Universal Extension)` in Salesforce Billing gateway settings
-- Stripe API calls are made directly to `https://api.stripe.com/v1` (not through the AWS middleware)
-- Uses `Stripe_Customer_Id__c` field on the standard `Account` object to link SF Accounts to Stripe Customers
-- Uses `Stripe_Setup_Intent_Id__c` on payment method records
+- Stripe API calls are made directly to `https://api.stripe.com/v1`
+- Uses `Stripe_Customer_Id__c` field on the standard `Account` object to link SF Accounts to Stripe Customers (org-specific field created by this extension, not managed package — no `stripeGC__` prefix)
+- Uses `Stripe_Setup_Intent_Id__c` on payment method records (org-specific field, no `stripeGC__` prefix)

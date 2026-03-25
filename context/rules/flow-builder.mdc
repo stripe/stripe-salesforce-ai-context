@@ -282,7 +282,7 @@ You have **three approaches** for calling Stripe APIs from Flows. Choose based o
 </inputParameters>
 ```
 
-See `stripe-billing-salesforce-flows` for 14 production examples using this pattern.
+See `Stripe-Billing-Flows.md` for 14 production examples using this pattern.
 
 ### 2. AgnosticInvocable (For any endpoint)
 
@@ -368,7 +368,7 @@ public class CreatePaymentLinkAction {
 }
 ```
 
-See `stripe-flow-recipes/force-app/main/default/classes/CreateCheckoutSessionAction.cls` for a complete working example.
+See `examples/force-app/main/default/classes/CreateCheckoutSessionAction.cls` for a complete working example.
 
 ## Commonly Used Invocable Actions (Quick Reference)
 
