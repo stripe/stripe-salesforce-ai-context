@@ -39,11 +39,11 @@ This repo provides **AI-native context files** that teach AI tools the Stripe Ap
 
 Open your AI coding tool in this repo's directory and prompt:
 
-> **Read all files in context/ and become my Stripe-Salesforce integration expert. When ready, tell me what you loaded.**
+> **Read `context/LOAD_ALL.md` and load the core context files it lists. When ready, tell me what you loaded.**
 
 This works with any AI coding tool — Claude Code, Cursor, Codex, Copilot, Aider, Cody. No tool-specific syntax needed.
 
-The AI will read all context files and confirm what it loaded. Then prompt with your task:
+The AI will read the core context files (~35K tokens) and confirm what it loaded. It can pull in the larger reference files on demand when needed. Then prompt with your task:
 
 **Good — gets you a starting point:**
 - "Generate a Flow that creates a Stripe Customer when Opportunity closes"
@@ -66,8 +66,7 @@ The context files total **~230K tokens**. You don't need to load everything at o
 | What to Load | Tokens | When to Use |
 |---|---|---|
 | **Core context only** (architecture, rules, billing flows) | ~35K | Most tasks — Flows, LWC, Apex generation |
-| **Core + invocable-actions-reference.md** | ~68K | When you need to look up specific `v02_*` action names and parameters |
-| **Core + both references** (invocable actions + models) | ~230K | Deep work — building complex integrations with nested model structures |
+| **Core + reference files** (invocable actions + models) | ~230K | When you need specific `v02_*` action names, parameters, or model field structures |
 
 **Practical tip:** Start with the core files. Your AI tool can read `invocable-actions-reference.md` or `models-reference.md` on demand when it needs to look up a specific action or model — you don't need them in context for every task.
 
