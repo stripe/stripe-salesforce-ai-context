@@ -1,0 +1,13 @@
+{
+  "orgName": "Rocket Rides Scratch Org",
+  "edition": "Developer",
+  "features": [
+    "LightningExperience",
+    "API"
+  ],
+  "settings": {
+    "lightningExperienceSettings": {
+      "enableS1DesktopEnabled": true
+    }
+  }
+}

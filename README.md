@@ -87,6 +87,8 @@ With AI tools + these context files, you can generate:
 
 See [full installation guide](#prerequisites-detailed-setup) below for step-by-step instructions.
 
+**Need a scratch org?** If you don't have a Salesforce org yet, follow the [Scratch Org Quickstart](setup/scratch-org-quickstart.md) to create a disposable dev environment in minutes. You'll need a parent org (free Developer Edition, Production, or Partner Business Org) with Dev Hub enabled.
+
 ### 2. Copy Context Files to Your Project
 
 ```bash
@@ -129,6 +131,10 @@ stripe-salesforce-ai-context/
 │   └── rules/
 │       ├── flow-builder.mdc                        # Flow XML generation rules
 │       └── lwc-stripe-payment.mdc                  # LWC + Payment Element patterns
+│
+├── setup/                                          # Environment setup
+│   ├── project-scratch-def.json                    # Scratch org definition (ready to use)
+│   └── scratch-org-quickstart.md                   # Scratch org creation runbook
 │
 ├── prompts/                                        # Copy-paste prompts
 │   └── load-stripe-context.txt                     # For tools without file access
@@ -592,6 +598,8 @@ See [Salesforce MCP docs](https://github.com/salesforcecli/mcp) and [Stripe MCP 
 - [Stripe.js Reference](https://stripe.com/docs/js)
 - [Salesforce DX MCP Server](https://github.com/salesforcecli/mcp) — Official MCP server for Salesforce org interaction (beta)
 - [Stripe MCP Server](https://github.com/stripe/agent-toolkit) — Official MCP server for Stripe API interaction
+- [Stripe Terraform Provider](https://docs.stripe.com/terraform) — Manage Stripe-side resources (products, prices, webhooks) as infrastructure-as-code. Useful for pre-provisioning the Stripe resources your Salesforce Flows reference.
+- [Stripe Projects](https://projects.dev/) — CLI for provisioning cloud services (hosting, databases, auth). Not Salesforce-specific, but demonstrates Stripe's AI-native context approach with its `llm-context` command.
 
 ---
 
