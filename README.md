@@ -59,6 +59,20 @@ The more specific you are about trigger conditions, field mappings, and expected
 
 ---
 
+## Context Size
+
+The context files total **~230K tokens**. You don't need to load everything at once.
+
+| What to Load | Tokens | When to Use |
+|---|---|---|
+| **Core context only** (architecture, rules, billing flows) | ~35K | Most tasks — Flows, LWC, Apex generation |
+| **Core + invocable-actions-reference.md** | ~68K | When you need to look up specific `v02_*` action names and parameters |
+| **Core + both references** (invocable actions + models) | ~230K | Deep work — building complex integrations with nested model structures |
+
+**Practical tip:** Start with the core files. Your AI tool can read `invocable-actions-reference.md` or `models-reference.md` on demand when it needs to look up a specific action or model — you don't need them in context for every task.
+
+---
+
 ## What You Can Build
 
 With AI tools + these context files, you can generate:
