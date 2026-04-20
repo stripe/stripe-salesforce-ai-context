@@ -30,7 +30,7 @@ These files are large. **Do not load them upfront.** Instead, read **both** file
 
 **Always load both together** — action names and model fields are used in tandem.
 
-- **`invocable-actions-reference.md`** (~33K tokens) — 241 v02_* invocable actions with parameters
+- **`invocable-actions-reference.md`** (~33K tokens) — 244 v02_* invocable actions with parameters
 - **`models-reference.md`** (~160K tokens) — 2,175 request/response models (8,461 fields)
 
 ---

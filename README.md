@@ -139,7 +139,7 @@ stripe-salesforce-ai-context/
 │   ├── API-Extension.md                            # AutoGen invocables & models
 │   ├── Stripe-Billing-Flows.md                     # Subscription schedule automation
 │   ├── Stripe-Payments-Salesforce-Billing.md       # Legacy SF Billing (optional)
-│   ├── invocable-actions-reference.md              # 241 v02_* actions catalog
+│   ├── invocable-actions-reference.md              # 244 v02_* actions catalog
 │   ├── models-reference.md                         # 2,175 request/response models
 │   └── rules/
 │       ├── flow-builder.mdc                        # Flow XML generation rules
@@ -341,7 +341,7 @@ While AI tools accelerate development, foundational knowledge of Stripe API and 
 During the Stripe App setup in Salesforce, you'll be prompted to install extensions:
 
 **Required Extension:**
-- **Stripe API Extension (2025-04-30)** - Provides 241 invocable actions (`v02_CreateCustomers`, `v02_CreatePaymentIntents`, etc.) and API model classes
+- **Stripe API Extension (2025-04-30)** - Provides 244 invocable actions (`v02_CreateCustomers`, `v02_CreatePaymentIntents`, etc.) and API model classes
 
 **Optional Extensions:**
 - **Stripe Billing Flows** - Subscription schedule automation

@@ -2,7 +2,7 @@
 
 ## Overview
 
-This is the **main managed Salesforce package** for Stripe (namespace: `stripeGC`). It provides the core integration between Stripe and Salesforce, including account management, event handling, object syncing, and a setup wizard. Current version: **2.7.0**, API version: **64.0**.
+This is the **main managed Salesforce package** for Stripe (namespace: `stripeGC`). It provides the core integration between Stripe and Salesforce, including account management, event handling, object syncing, and a setup wizard. Current version: **2.8.0**, API version: **64.0**.
 
 ## Architecture
 
@@ -40,7 +40,7 @@ The Universal Connector provides three ways to call Stripe APIs, each suited for
 
 ### 1. AutoGen v02_* Invocable Actions (Recommended for most cases)
 
-**What:** 241 auto-generated invocable actions for Stripe API 2025-04-30
+**What:** 244 auto-generated invocable actions for Stripe API 2025-04-30
 - Examples: `v02_CreateCustomers`, `v02_CreatePaymentIntents`, `v02_CreateSubscriptions`
 - Full list: See `invocable-actions-reference.md`
 - Field details: See `models-reference.md` (2,175 request/response models, 8,461 fields)
@@ -362,9 +362,4 @@ Key learnings:
 
 ### Org-Specific Fields (IMPORTANT)
 
-Apex controllers that write Stripe results back to Salesforce records (e.g., setting `Payment_Captured__c = true` or storing a `Stripe_Payment_ID__c` on Opportunity) reference custom fields that are org-specific. These fields do not ship with the connector.
-
-Rules:
-- Never assume a custom field exists on a standard object. Use `sf sobject describe -s <ObjectName> -o <org-alias>` to verify field existence before generating Apex that references it.
-- Stripe managed package fields (prefixed `stripeGC__`) on custom objects are safe to reference — they ship with the connector.
-- If generating an Apex controller that reads or writes org-specific fields, list those fields in a deployment note so the developer knows what to create.
+Same rules as the "Org-Specific Fields" section under "Context for Building Flows" above — never assume custom fields exist on standard objects, verify with `sf sobject describe`, and list any org-specific fields in deployment notes.

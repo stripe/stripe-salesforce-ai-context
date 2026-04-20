@@ -5,7 +5,7 @@
 This is an **unmanaged Salesforce extension** (namespace: `stripeGC`) that provides auto-generated Stripe API invocable actions and model classes for use in **Salesforce Flow Builder** and **Apex**. Classes are generated from the Stripe OpenAPI spec.
 
 **What's included:**
-- **241 invocable actions** (`v02_*`) covering the full Stripe API surface
+- **244 invocable actions** (`v02_*`) covering the full Stripe API surface
 - **2,175 model classes** (8,461 fields) for requests and responses
 - **Cast operations** for webhook/event payload deserialization
 
@@ -210,7 +210,7 @@ When generating code that calls Stripe APIs:
 
 ## Reference Files
 
-- `invocable-actions-reference.md` — Complete catalog of all 241 v02_* invocable actions with parameters
+- `invocable-actions-reference.md` — Complete catalog of all 244 v02_* invocable actions with parameters
 - `models-reference.md` — Complete reference for all 2,175 request/response models (8,461 fields)
 
 ## Development Notes

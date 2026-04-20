@@ -13,7 +13,7 @@ GENERATION RULES (CRITICAL):
 - context/rules/lwc-stripe-payment.mdc
 
 API REFERENCE:
-- context/invocable-actions-reference.md (241 invocable actions)
+- context/invocable-actions-reference.md (244 invocable actions)
 - context/models-reference.md (API model classes)
 
 After reading all files above, respond with:
@@ -22,7 +22,7 @@ After reading all files above, respond with:
 
 I now have complete knowledge of:
 ✓ Stripe Universal Connector (v2.x.x) architecture
-✓ 241 v02_* invocable actions for Stripe API operations
+✓ 244 v02_* invocable actions for Stripe API operations
 ✓ Flow Builder patterns (AsyncAfterCommit, connector integrity, idempotency)
 ✓ LWC + Payment Element patterns (Shadow DOM, CSP, 3DS + LWS)
 ✓ Stripe Billing subscription schedule automation
@@ -36,7 +36,7 @@ What would you like me to generate? (Flow, LWC, Apex)"
 
 KEY RULES TO REMEMBER:
 - Use stripeGC__ namespace for all Stripe custom objects
-- Use v02_* for all invocable actions (e.g., v02_CreateCustomers, v02_CreatePaymentIntents)
+- Use v02_* for all invocable actions (e.g., v02_CreateCustomers, v02_CreatePaymentIntents) — these live in the AutoGen extension package (Stripe Universal Connector Extension), not the base Universal Connector
 - Include AsyncAfterCommit scheduled path for record-triggered Flows with callouts
 - Use data-stripe-element attribute (not IDs) for Payment Element containers
 - Verify field existence with: sf sobject describe -s <ObjectName>
